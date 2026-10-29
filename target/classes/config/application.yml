@@ -1,0 +1,35 @@
+# application.yml
+# ÚNICA FUENTE DE CONFIGURACIÓN. SIN DATOS QUEMADOS EN CÓDIGO.
+# Carga perezosa
+
+map:
+  imagePath: map/tunjaMap.png
+  # Coordenadas geográficas proporcionadas por el usuario
+  # NO configurables desde interfaz
+  geoReference:
+    # Se leerán desde aquí o desde metadatos de la imagen
+    topLeftLat: 0.0
+    topLeftLon: 0.0
+    bottomRightLat: 0.0
+    bottomRightLon: 0.0
+
+graph:
+  nodesCsv: csv/nodes.csv
+  edgesCsv: csv/edges.csv
+
+tolerance:
+  clickRadiusPx: 10
+
+logs:
+  directory: logs
+  fileNamePattern: mapRouteTunja-yyyy-MM-dd.log
+  rotationDays: 3
+
+i18n:
+  defaultLanguage: es
+  availableLanguages:
+    - es
+    - en
+    - fr
+  useYaml: true
+  useProperties: false
