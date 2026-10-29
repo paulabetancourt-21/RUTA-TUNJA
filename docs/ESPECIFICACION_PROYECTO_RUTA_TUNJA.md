@@ -110,54 +110,54 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 
 ### FASE 0: ANÁLISIS Y APROBACIÓN
 **Objetivo:** Dejar todo claro antes de escribir código. Sin crear clases funcionales.  
-**Estado:** PENDIENTE (ACTUAL)
+**Estado:** COMPLETADA
 
 #### Actividades
-- [ ] Revisar especificación completa
-- [ ] Confirmar reglas (dominio, camelCase, métodos cortos, interfaces, menús únicos, sin datos quemados)
-- [ ] Leer boceto y tener claras las opciones faltantes
-- [ ] Responder todas las preguntas del apartado 10
+- [x] Revisar especificación completa
+- [x] Confirmar reglas (dominio, camelCase, métodos cortos, interfaces, menús únicos, sin datos quemados)
+- [x] Leer boceto y tener claras las opciones faltantes
+- [x] Responder todas las preguntas del apartado 10
 
 #### Criterio para pasar a FASE 1
-- [ ] TODAS las preguntas del apartado 10 han sido respondidas por el usuario
-- [ ] No existen dudas sin resolver
-- [ ] Se aprueba pasar a FASE 1
+- [x] TODAS las preguntas del apartado 10 han sido respondidas por el usuario
+- [x] No existen dudas sin resolver
+- [x] Se aprueba pasar a FASE 1
 
 ### FASE 1: REESTRUCTURACIÓN A CO.EDU.UPTC
 **Objetivo:** Tener la estructura exacta bajo dominio correcto, sin carpetas innecesarias.  
-**Estado:** BLOQUEADO
+**Estado:** COMPLETADA
 
 #### Actividades
-- [ ] Verificar paquetes: `config`, `dto`, `i18n`, `log`, `model`, `presenter`, `util`, `view`
-- [ ] Ajustar `pom.xml` con `groupId` `co.edu.uptc` y `mainClass` correcto
-- [ ] Crear carpetas `src/main/resources/{config,csv,i18n,map}`, `docs`, `logs`, `src/test/java/co/edu/uptc/`
-- [ ] Confirmar estructura limpia y sin `com.*`
+- [x] Verificar paquetes: `config`, `dto`, `i18n`, `log`, `model`, `presenter`, `util`, `view`
+- [x] Ajustar `pom.xml` con `groupId` `co.edu.uptc` y `mainClass` correcto
+- [x] Crear carpetas `src/main/resources/{config,csv,i18n,map}`, `docs`, `logs`, `src/test/java/co/edu/uptc/`
+- [x] Confirmar estructura limpia y sin `com.*`
 
 #### Criterio para pasar a FASE 2
-- [ ] Estructura revisada y aprobada
-- [ ] Sin `com.*` ni `rutatunja`
-- [ ] Paquetes listos para recibir interfaces
-- [ ] Dominio `co.edu.uptc` correcto en todo
+- [x] Estructura revisada y aprobada
+- [x] Sin `com.*` ni `rutatunja`
+- [x] Paquetes listos para recibir interfaces
+- [x] Dominio `co.edu.uptc` correcto en todo
 
 ### FASE 2: CONFIGURACIÓN YAML + DESACOPLAMIENTO
 **Objetivo:** Única fuente de configuración es `.yml`. Implementar carga según decisión (perezosa/rápida). Todo por interfaces.  
 **Estado:** BLOQUEADO
 
 #### Actividades
-- [ ] Crear `src/main/resources/config/application.yml` (sin datos quemados)
-- [ ] Crear interfaz `ConfigService` en `co.edu.uptc.config`
-- [ ] Crear implementación concreta `YamlConfigService` en `co.edu.uptc.config` (camelCase inglés)
-- [ ] Implementar carga perezosa o carga rápida según respuesta de FASE 0
-- [ ] Crear DTOs necesarios en `co.edu.uptc.dto` si aplica
-- [ ] Instanciar por constructor e interfaces en `Main`
-- [ ] Verificar métodos cortos (máx 5 líneas)
+- [x] Crear `src/main/resources/config/application.yml` (sin datos quemados)
+- [x] Crear interfaz `ConfigService` en `co.edu.uptc.config`
+- [x] Crear implementación concreta `YamlConfigService` en `co.edu.uptc.config` (camelCase inglés)
+- [x] Implementar carga perezosa o carga rápida según respuesta de FASE 0
+- [x] Crear DTOs necesarios en `co.edu.uptc.dto` si aplica
+- [x] Instanciar por constructor e interfaces en `Main`
+- [x] Verificar métodos cortos (máx 5 líneas)
 
 #### Criterio para pasar a FASE 3
-- [ ] `application.yml` existe sin datos quemados
-- [ ] `ConfigService` (interface) + implementación concreta creadas
-- [ ] Tipo de carga perezosa implementado correctamente
-- [ ] Desacoplamiento verificado
-- [ ] Sin datos hardcodeados
+- [x] `application.yml` existe sin datos quemados
+- [x] `ConfigService` (interface) + implementación concreta creadas
+- [x] Tipo de carga perezosa implementado correctamente
+- [x] Desacoplamiento verificado
+- [x] Sin datos hardcodeados
 
 ### FASE 3: INTERNACIONALIZACIÓN (MULTILENGUAJE)
 **Objetivo:** 3 lenguajes principales (`es`, `en`, `fr`) + posibilidad de añadir más. Todos los textos UI desde `i18n`.  
@@ -381,5 +381,5 @@ Las decisiones fueron tomadas con base en lo indicado por el desarrollador. Todo
 - **Estado:** Sin elementos adicionales pendientes del boceto por el momento.
 
 ## 11. ESTADO ACTUAL
-- **Fase actual:** FASE 0 - ANÁLISIS Y APROBACIÓN (COMPLETADA)
-- **Siguiente fase:** FASE 1 - REESTRUCTURACIÓN A CO.EDU.UPTC
+- **Fase actual:** FASE 2 - CONFIGURACIÓN YAML + DESACOPLAMIENTO (COMPLETADA)
+- **Siguiente fase:** FASE 3 - INTERNACIONALIZACIÓN (MULTILENGUAJE)
