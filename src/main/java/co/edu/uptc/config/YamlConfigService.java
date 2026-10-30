@@ -75,6 +75,22 @@ public class YamlConfigService extends AbstractYamlService implements ConfigServ
         return new HashMap<String, Object>();
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public java.util.List<String> getList(String key) {
+        ensureLoaded();
+        Object value = getValue(key);
+        if (value instanceof java.util.List) {
+            java.util.List<Object> list = (java.util.List<Object>) value;
+            java.util.List<String> result = new java.util.ArrayList<String>();
+            for (Object item : list) {
+                result.add(String.valueOf(item));
+            }
+            return result;
+        }
+        return new java.util.ArrayList<String>();
+    }
+
     private int parseInt(Object value) {
         try {
             return Integer.parseInt(String.valueOf(value));

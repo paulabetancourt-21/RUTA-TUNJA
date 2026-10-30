@@ -1,0 +1,22 @@
+menu:
+  via: Voie
+  route: Itinéraire
+  preferences: Préférences
+  help: Aide
+  createNode: Créer un nouveau nœud
+  createEdge: Créer une nouvelle arête
+  calculateRoute: Calculer l'itinéraire
+  saveRoute: Enregistrer l'itinéraire
+  clearRoute: Effacer l'itinéraire
+
+status:
+  ready: Prêt
+  lat: Lat
+  lon: Lon
+  zoom: Zoom
+
+message:
+  samePoint: L'origine et la destination sont identiques
+  noRoute: Il n'existe aucun itinéraire entre l'origine et la destination
+  selectOrigin: Sélectionner l'origine
+  selectDestination: Sélectionner la destination

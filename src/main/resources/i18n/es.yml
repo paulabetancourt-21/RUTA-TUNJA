@@ -1,0 +1,22 @@
+menu:
+  via: Vía
+  route: Ruta
+  preferences: Preferencias
+  help: Ayuda
+  createNode: Crear nuevo nodo
+  createEdge: Crear nueva arista
+  calculateRoute: Calcular ruta
+  saveRoute: Guardar ruta
+  clearRoute: Limpiar ruta
+
+status:
+  ready: Listo
+  lat: Lat
+  lon: Lon
+  zoom: Zoom
+
+message:
+  samePoint: El origen y el destino son el mismo punto
+  noRoute: No existe ruta entre el origen y el destino
+  selectOrigin: Seleccione el origen
+  selectDestination: Seleccione el destino

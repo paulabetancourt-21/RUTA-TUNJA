@@ -1,5 +1,6 @@
 package co.edu.uptc.config;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ConfigService {
@@ -8,4 +9,5 @@ public interface ConfigService {
     boolean getBoolean(String key);
     double getDouble(String key);
     Map<String, Object> getSection(String key);
+    List<String> getList(String key);
 }

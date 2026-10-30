@@ -6,6 +6,7 @@ files:
   applicationConfig: config/application.yml
   i18nPrefix: i18n/
   i18nExtension: .yml
+  externalI18nDir: extraI18n/
 
 map:
   imagePath: map/tunjaMap.png

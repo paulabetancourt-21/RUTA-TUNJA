@@ -2,6 +2,8 @@ package co.edu.uptc.util;
 
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +16,17 @@ public class YamlLoader {
             return emptyMap();
         }
         return loadFromStream(inputStream);
+    }
+
+    public Map<String, Object> loadFromFile(File file) {
+        if (file == null || !file.exists()) {
+            return emptyMap();
+        }
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            return loadFromStream(fileInputStream);
+        } catch (Exception exception) {
+            return emptyMap();
+        }
     }
 
     private InputStream openStream(String resourcePath) {
