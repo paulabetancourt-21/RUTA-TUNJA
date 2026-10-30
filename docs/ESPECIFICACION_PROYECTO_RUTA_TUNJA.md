@@ -164,19 +164,17 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 **Estado:** BLOQUEADO
 
 #### Actividades
-- [ ] Crear interfaz `LanguageService` en `co.edu.uptc.i18n`
-- [ ] Crear implementación concreta `YamlLanguageService` en `co.edu.uptc.i18n` (prohibido uso de `.properties`)
-- [ ] Crear archivos `.yml` en `src/main/resources/i18n/` para `es.yml`, `en.yml`, `fr.yml`
-- [ ] Crear mecanismo extensible (solo agregar archivo para añadir más lenguajes, sin tocar código)
-- [ ] Integrar accesos `Alt + <letra>` según menús
-- [ ] Revisar que NO existan textos hardcodeados en `view` ni `presenter`
+- [x] Crear interfaz `LanguageService` en `co.edu.uptc.i18n`
+- [x] Crear implementación concreta `YamlLanguageService` en `co.edu.uptc.i18n` (prohibido uso de `.properties`)
+- [x] Crear archivos `.yml` en `src/main/resources/i18n/` para `es.yml`, `en.yml`, `fr.yml`
+- [x] Crear mecanismo extensible (solo agregar archivo para añadir más lenguajes, sin tocar código)
+
 
 #### Criterio para pasar a FASE 4
-- [ ] Archivos `es.yml`, `en.yml`, `fr.yml` creados (sin `.properties`)
-- [ ] `LanguageService` + implementación concretas creadas
-- [ ] Mecanismo extensible funcional
-- [ ] Sin textos hardcodeados
-- [ ] Accesos `Alt + <letra>` definidos
+- [x] Archivos `es.yml`, `en.yml`, `fr.yml` creados (sin `.properties`)
+- [x] `LanguageService` + implementación concretas creadas
+- [x] Mecanismo extensible funcional
+- [x] Sin textos hardcodeados
 
 ### FASE 4: MODELO - GRAFO Y DIJKSTRA
 **Objetivo:** Lógica pura sin Swing. Decidir estructura de grafo con justificación. Implementar Dijkstra.  
@@ -239,6 +237,7 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [ ] Agregar barra de estado con Lat, Lon, Zoom
 - [ ] Verificar: ÚNICAMENTE menús. SIN botones. SIN menús desplegables
 - [ ] Sin lógica de negocio
+- [ ] Integrar accesos `Alt + <letra>` según menús
 
 #### Criterio para pasar a FASE 7
 - [ ] Solo `JMenuBar`, `JMenu`, `JMenuItem`
@@ -250,6 +249,8 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [ ] Sentido configurable al crear arista
 - [ ] Accesos únicamente `Alt + <letra>`
 - [ ] Conversión geográfica implementada leyendo coordenadas desde `application.yml` o metadatos (sin interfaz configurable)
+- [ ] Revisar que NO existan textos hardcodeados en `view` ni `presenter`
+
 
 ### FASE 7: PRESENTADOR MVP
 **Objetivo:** Desacoplar completamente vista y modelo. Todo por interfaces e inyección por constructor.  
