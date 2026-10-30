@@ -2,12 +2,16 @@
 # ÚNICA FUENTE DE CONFIGURACIÓN. SIN DATOS QUEMADOS EN CÓDIGO.
 # Carga perezosa
 
+files:
+  applicationConfig: config/application.yml
+  i18nPrefix: i18n/
+  i18nExtension: .yml
+
 map:
   imagePath: map/tunjaMap.png
   # Coordenadas geográficas proporcionadas por el usuario
   # NO configurables desde interfaz
   geoReference:
-    # Se leerán desde aquí o desde metadatos de la imagen
     topLeftLat: 0.0
     topLeftLon: 0.0
     bottomRightLat: 0.0
