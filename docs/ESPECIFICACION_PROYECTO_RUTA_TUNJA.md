@@ -180,8 +180,8 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 **Estado:** BLOQUEADO
 
 #### Actividades
-- [ ] Crear entidades `Node`, `Edge`, `Graph` en `co.edu.uptc.model` (camelCase inglés)
-- [ ] Crear interfaces `GraphService`, `RouteService`, `DijkstraService` en `co.edu.uptc.model`
+- [X] Crear entidades `Node`, `Edge`, `Graph` en `co.edu.uptc.model` (camelCase inglés)
+- [X] Crear interfaces `GraphService`, `RouteService`, `DijkstraService` en `co.edu.uptc.model`
 - [ ] Crear implementaciones concretas en `co.edu.uptc.model`
 - [ ] Implementar cálculo de peso con coordenadas geográficas
 - [ ] Implementar algoritmo Dijkstra

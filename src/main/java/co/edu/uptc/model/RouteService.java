@@ -1,5 +1,7 @@
 package co.edu.uptc.model;
 
-public interface RouteService {
+import java.util.List;
 
+public interface RouteService {
+    double calculateTotalDistance(List<Node> route);
 }

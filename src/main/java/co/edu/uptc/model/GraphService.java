@@ -1,5 +1,8 @@
 package co.edu.uptc.model;
 
-public interface GraphService {
+import java.util.List;
 
+public interface GraphService {
+    Graph getGraph();
+    void buildGraph(List<Node> nodes, List<Edge> edges);
 }

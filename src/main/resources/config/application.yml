@@ -36,5 +36,3 @@ i18n:
     - es
     - en
     - fr
-  useYaml: true
-  useProperties: false

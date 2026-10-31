@@ -1,5 +1,7 @@
 package co.edu.uptc.model;
 
-public interface DijkstraService {
+import java.util.List;
 
+public interface DijkstraService {
+    List<Node> calculateShortestPath(Node source, Node destination);
 }
