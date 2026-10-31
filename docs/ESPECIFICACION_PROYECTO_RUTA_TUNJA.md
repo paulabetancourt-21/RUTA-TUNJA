@@ -182,8 +182,8 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 #### Actividades
 - [X] Crear entidades `Node`, `Edge`, `Graph` en `co.edu.uptc.model` (camelCase inglés)
 - [X] Crear interfaces `GraphService`, `RouteService`, `DijkstraService` en `co.edu.uptc.model`
-- [ ] Crear implementaciones concretas en `co.edu.uptc.model`
-- [ ] Implementar cálculo de peso con coordenadas geográficas
+- [X] Crear implementaciones concretas en `co.edu.uptc.model`
+- [X] Implementar cálculo de peso con coordenadas geográficas
 - [ ] Implementar algoritmo Dijkstra
 - [ ] Documentar y aplicar decisión: Lista de Adyacencia o Matriz de Adyacencia con justificación
 - [ ] Asegurar métodos cortos y sin imports de Swing
