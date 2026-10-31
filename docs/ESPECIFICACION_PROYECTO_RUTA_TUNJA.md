@@ -169,7 +169,6 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [x] Crear archivos `.yml` en `src/main/resources/i18n/` para `es.yml`, `en.yml`, `fr.yml`
 - [x] Crear mecanismo extensible (solo agregar archivo para añadir más lenguajes, sin tocar código)
 
-
 #### Criterio para pasar a FASE 4
 - [x] Archivos `es.yml`, `en.yml`, `fr.yml` creados (sin `.properties`)
 - [x] `LanguageService` + implementación concretas creadas
