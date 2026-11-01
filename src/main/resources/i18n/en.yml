@@ -108,6 +108,8 @@ dialog:
     nodeColor: "Node color"
     edgeColor: "Edge color"
     routeColor: "Route color"
+    originColor: "Origin color"
+    destinationColor: "Destination color"
     nodeSize: "Node size (px)"
     strokeWidth: "Line thickness (px)"
     chooseColor: "Choose color..."

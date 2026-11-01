@@ -36,6 +36,12 @@ public class Graph {
         addReverseIfNeeded(edge);
     }
 
+    public void clear() {
+        nodes.clear();
+        adjacencyList.clear();
+        edges.clear();
+    }
+
     private boolean isValidEdge(Edge edge) {
         return edge != null && edge.getSource() != null && edge.getDestination() != null;
     }

@@ -458,9 +458,18 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
     }
 
     private void handleNewGraph(int option) {
-        if (option == JOptionPane.YES_OPTION) {
-            updateStatusMessage(languageService.getText("status.newGraph"));
+        if (option != JOptionPane.YES_OPTION) {
+            return;
         }
+        resetGraphState();
+        updateStatusMessage(languageService.getText("status.newGraph"));
+    }
+
+    private void resetGraphState() {
+        graphService.clearGraph();
+        resetMode();
+        clearRoute();
+        mapPanel.repaint();
     }
 
     public void saveGraph() {

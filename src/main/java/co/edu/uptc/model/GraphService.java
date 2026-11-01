@@ -7,5 +7,6 @@ public interface GraphService {
     void buildGraph(List<Node> nodes, List<Edge> edges);
     void addNode(Node node);
     void addEdge(Edge edge);
+    void clearGraph();
     int nextNodeId();
 }

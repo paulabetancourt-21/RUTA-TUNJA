@@ -31,6 +31,11 @@ public class GraphServiceImpl implements GraphService {
     }
 
     @Override
+    public void clearGraph() {
+        graph.clear();
+    }
+
+    @Override
     public int nextNodeId() {
         return graph.getNodes().keySet().stream().mapToInt(Integer::intValue).max().orElse(0) + 1;
     }

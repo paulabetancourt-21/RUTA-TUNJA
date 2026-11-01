@@ -108,6 +108,8 @@ dialog:
     nodeColor: "Couleur du nœud"
     edgeColor: "Couleur de l'arête"
     routeColor: "Couleur de l'itinéraire"
+    originColor: "Couleur de l'origine"
+    destinationColor: "Couleur de la destination"
     nodeSize: "Taille du nœud (px)"
     strokeWidth: "Épaisseur de ligne (px)"
     chooseColor: "Choisir une couleur..."
