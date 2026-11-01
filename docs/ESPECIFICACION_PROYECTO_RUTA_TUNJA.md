@@ -201,8 +201,8 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 **Estado:** BLOQUEADO
 
 #### Actividades
-- [ ] Crear interfaz `CsvReaderService` en `co.edu.uptc.model` o `co.edu.uptc.util` (manteniendo desacoplamiento)
-- [ ] Crear implementación concreta
+- [X] Crear interfaz `CsvReaderService` en `co.edu.uptc.model` o `co.edu.uptc.util` (manteniendo desacoplamiento)
+- [X] Crear implementación concreta
 - [ ] Leer archivos `nodes.csv` y `edges.csv`
 - [ ] Aplicar estructura exacta `id,lat,lon` y `fromId,toId,oneWay`
 - [ ] Calcular peso únicamente con coordenadas geográficas (no leerlo desde CSV)
