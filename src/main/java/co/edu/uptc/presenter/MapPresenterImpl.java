@@ -1,12 +1,9 @@
 package co.edu.uptc.presenter;
 
 import co.edu.uptc.model.GraphLoadResult;
-import co.edu.uptc.model.GraphResetResult;
 import co.edu.uptc.model.InteractionResult;
 import co.edu.uptc.model.MapModelService;
 import co.edu.uptc.model.Node;
-import co.edu.uptc.model.RouteResult;
-import co.edu.uptc.model.SaveRouteInfo;
 import co.edu.uptc.model.SavedRoute;
 import co.edu.uptc.view.MapView;
 import co.edu.uptc.view.map.MapStyle;
@@ -118,11 +115,12 @@ public class MapPresenterImpl implements MapPresenter {
             view.updateStatusMessage("Error al guardar");
         }
     }
-
     @Override
-    public void undo() {
-        view.showUndo();
-    }
+        public void undo() {
+            InteractionResult res = model.undo();
+            view.updateStatusMessage(res.toString());
+            view.showGraphLoad(new GraphLoadResult(model.getGraph(), "Acción deshecha"));
+        }
 
     @Override
     public void zoomIn() {
@@ -178,4 +176,6 @@ public class MapPresenterImpl implements MapPresenter {
     public void loadGraphFromFolder(File folder) {
         view.showGraphLoad(model.loadExternalGraph(folder));
     }
+
+
 }

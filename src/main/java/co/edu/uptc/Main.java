@@ -10,7 +10,6 @@ import co.edu.uptc.presenter.MapPresenter;
 import co.edu.uptc.presenter.MapPresenterImpl;
 import co.edu.uptc.view.main.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
-
 import javax.swing.SwingUtilities;
 
 public class Main {

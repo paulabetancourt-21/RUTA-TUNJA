@@ -7,11 +7,12 @@ import co.edu.uptc.persistence.CsvLoaderServiceImpl;
 import co.edu.uptc.persistence.SavedRouteService;
 import co.edu.uptc.persistence.SavedRouteServiceImpl;
 import co.edu.uptc.util.GeoUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -30,11 +31,26 @@ public class MapModelServiceImpl implements MapModelService {
     private List<Node> currentRoute = new ArrayList<>();
     private double currentDistanceKm;
     private File activeFolder = null;
+    private final Deque<Graph> history = new ArrayDeque<>();
 
     public MapModelServiceImpl(ConfigService configService, LanguageService languageService) {
         this.configService = configService;
         this.languageService = languageService;
         this.savedRouteService = new SavedRouteServiceImpl(configService);
+    }
+
+    private Graph createGraphSnapshot() {
+        Graph current = graphService.getGraph();
+        Graph snapshot = new Graph();
+        current.getNodes().forEach((id, node) -> snapshot.getNodes().put(id, new Node(node.getId(), node.getName(), node.getLat(), node.getLon())));
+        current.getEdges().forEach(edge -> {
+            Node src = snapshot.getNodes().get(edge.getSource().getId());
+            Node dst = snapshot.getNodes().get(edge.getDestination().getId());
+            if (src != null && dst != null) {
+                snapshot.getEdges().add(new Edge(src, dst, edge.isOneWay(), edge.getWeight()));
+            }
+        });
+        return snapshot;
     }
 
     @Override
@@ -55,6 +71,7 @@ public class MapModelServiceImpl implements MapModelService {
 
     @Override
     public GraphResetResult resetGraph() {
+        history.clear();
         graphService.clearGraph();
         resetInteraction();
         clearRouteState();
@@ -63,6 +80,7 @@ public class MapModelServiceImpl implements MapModelService {
 
     @Override
     public String createNode(double latitude, double longitude, String name) {
+        history.push(createGraphSnapshot());
         Node node = new Node(graphService.nextNodeId(), name, latitude, longitude);
         graphService.addNode(node);
         resetInteraction();
@@ -71,6 +89,7 @@ public class MapModelServiceImpl implements MapModelService {
 
     @Override
     public String createEdge(Node source, Node destination, boolean oneWay) {
+        history.push(createGraphSnapshot());
         graphService.addEdge(buildEdge(source, destination, oneWay));
         resetInteraction();
         return languageService.getText("status.edgeCreated");
@@ -295,6 +314,7 @@ public class MapModelServiceImpl implements MapModelService {
     @Override
     public GraphLoadResult loadExternalGraph(File folder) {
         try {
+            history.clear();
             this.activeFolder = folder;
             graphService.clearGraph();
             csvLoader.loadNodes(new File(folder, "nodes.csv").getAbsolutePath());
@@ -328,5 +348,18 @@ public class MapModelServiceImpl implements MapModelService {
         } catch (Exception ex) { return false; }
     }
 
-    
+    @Override
+    public InteractionResult undo() {
+        if (history.isEmpty()) return InteractionResult.message("No hay acciones");
+        Graph prev = history.pop();
+        graphService.clearGraph();
+        prev.getNodes().values().forEach(graphService::addNode);
+        prev.getEdges().forEach(graphService::addEdge);
+        return InteractionResult.message("Acción deshecha");
+    }
+
+    @Override
+    public Graph getGraph() {
+        return graphService.getGraph();
+    }
 }

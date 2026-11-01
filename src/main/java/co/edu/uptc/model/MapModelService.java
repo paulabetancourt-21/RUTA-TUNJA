@@ -24,4 +24,6 @@ public interface MapModelService {
     GraphLoadResult loadExternalGraph(File folder);
     boolean saveGraphToFolder(File folder);
     boolean saveGraph();
+    InteractionResult undo();
+    Graph getGraph();
 }
