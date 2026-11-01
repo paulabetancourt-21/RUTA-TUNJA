@@ -1,10 +1,15 @@
 package co.edu.uptc.config;
 
 import co.edu.uptc.util.AbstractYamlService;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class YamlConfigService extends AbstractYamlService implements ConfigService {
+
+    private static final String DEFAULT_CONFIG_PATH = "config/application.yml";
     private String resourcePath;
 
     public YamlConfigService(String resourcePath) {
@@ -13,55 +18,39 @@ public class YamlConfigService extends AbstractYamlService implements ConfigServ
     }
 
     public YamlConfigService() {
-        super();
-        this.resourcePath = null;
+        this(DEFAULT_CONFIG_PATH);
     }
 
     private void ensureLoaded() {
-        if (resourcePath == null) {
-            resourcePath = getString("files.applicationConfig");
-        }
-        loadIfNeeded(resourcePath);
+        loadIfNeeded(resourcePath != null ? resourcePath : DEFAULT_CONFIG_PATH);
     }
 
     @Override
     public String getString(String key) {
         ensureLoaded();
         Object value = getValue(key);
-        if (value == null) {
-            return "";
-        }
-        return String.valueOf(value);
+        return value == null ? "" : String.valueOf(value);
     }
 
     @Override
     public int getInt(String key) {
         ensureLoaded();
         Object value = getValue(key);
-        if (value == null) {
-            return 0;
-        }
-        return parseInt(value);
+        return value == null ? 0 : parseInt(value);
     }
 
     @Override
     public boolean getBoolean(String key) {
         ensureLoaded();
         Object value = getValue(key);
-        if (value == null) {
-            return false;
-        }
-        return parseBoolean(value);
+        return value != null && parseBoolean(value);
     }
 
     @Override
     public double getDouble(String key) {
         ensureLoaded();
         Object value = getValue(key);
-        if (value == null) {
-            return 0.0;
-        }
-        return parseDouble(value);
+        return value == null ? 0.0 : parseDouble(value);
     }
 
     @Override
@@ -69,26 +58,23 @@ public class YamlConfigService extends AbstractYamlService implements ConfigServ
     public Map<String, Object> getSection(String key) {
         ensureLoaded();
         Object value = getValue(key);
-        if (isMap(value)) {
-            return (Map<String, Object>) value;
-        }
-        return new HashMap<String, Object>();
+        return isMap(value) ? (Map<String, Object>) value : new HashMap<>();
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public java.util.List<String> getList(String key) {
+    public List<String> getList(String key) {
         ensureLoaded();
         Object value = getValue(key);
-        if (value instanceof java.util.List) {
-            java.util.List<Object> list = (java.util.List<Object>) value;
-            java.util.List<String> result = new java.util.ArrayList<String>();
-            for (Object item : list) {
-                result.add(String.valueOf(item));
-            }
-            return result;
+        return (value instanceof List) ? convertList((List<?>) value) : new ArrayList<>();
+    }
+
+    private List<String> convertList(List<?> list) {
+        List<String> result = new ArrayList<>();
+        for (Object item : list) {
+            result.add(String.valueOf(item));
         }
-        return new java.util.ArrayList<String>();
+        return result;
     }
 
     private int parseInt(Object value) {
