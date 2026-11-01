@@ -77,6 +77,7 @@ message:
 dialog:
   createNode:
     title: "Crear nuevo nodo"
+    name: "Nombre (opcional)"
     latitude: "Latitud"
     longitude: "Longitud"
     hint: "Las coordenadas se llenan con el clic en el mapa."

@@ -77,6 +77,7 @@ message:
 dialog:
   createNode:
     title: "Créer un nouveau nœud"
+    name: "Nom (facultatif)"
     latitude: "Latitude"
     longitude: "Longitude"
     hint: "Les coordonnées sont remplies par un clic sur la carte."

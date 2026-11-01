@@ -15,6 +15,7 @@ import java.awt.GridLayout;
 
 public class CreateNodeDialog extends JDialog {
 
+    private JTextField nameField;
     private JTextField latitudeField;
     private JTextField longitudeField;
     private boolean confirmed;
@@ -35,6 +36,7 @@ public class CreateNodeDialog extends JDialog {
     }
 
     private void initFields() {
+        nameField = new JTextField(15);
         latitudeField = createReadOnlyField();
         longitudeField = createReadOnlyField();
     }
@@ -46,7 +48,9 @@ public class CreateNodeDialog extends JDialog {
     }
 
     private JPanel createFormPanel(LanguageService languageService) {
-        JPanel panel = new JPanel(new GridLayout(5, 1, 6, 6));
+        JPanel panel = new JPanel(new GridLayout(7, 1, 6, 6));
+        panel.add(new JLabel(languageService.getText("dialog.createNode.name") + ":"));
+        panel.add(nameField);
         panel.add(new JLabel(languageService.getText("dialog.createNode.latitude") + ":"));
         panel.add(latitudeField);
         panel.add(new JLabel(languageService.getText("dialog.createNode.longitude") + ":"));
@@ -75,6 +79,10 @@ public class CreateNodeDialog extends JDialog {
     public void setCoordinates(double latitude, double longitude) {
         latitudeField.setText(String.format("%.6f", latitude));
         longitudeField.setText(String.format("%.6f", longitude));
+    }
+
+    public String getNodeName() {
+        return nameField.getText().trim();
     }
 
     public boolean isConfirmed() {

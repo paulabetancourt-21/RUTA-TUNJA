@@ -253,8 +253,14 @@ public class MapPanelImpl extends JPanel implements MapPanel {
 
     private void drawNodeLabel(Graphics2D g2d, Node node, Point point, int diameter) {
         g2d.setColor(style.getLabelColor());
-        String label = languageService.getText("map.node") + " " + node.getId();
-        g2d.drawString(label, point.x + diameter, point.y - diameter);
+        g2d.drawString(nodeLabel(node), point.x + diameter, point.y - diameter);
+    }
+
+    private String nodeLabel(Node node) {
+        if (node.hasName()) {
+            return node.getName();
+        }
+        return languageService.getText("map.node") + " " + node.getId();
     }
 
     private void drawMarkers(Graphics2D g2d) {

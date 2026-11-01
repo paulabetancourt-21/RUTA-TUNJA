@@ -156,18 +156,18 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
 
     private void finishCreateNode(CreateNodeDialog dialog, double latitude, double longitude) {
         if (dialog.isConfirmed()) {
-            addNode(latitude, longitude);
-            updateStatusMessage(languageService.getText("status.nodeCreated"));
+            addNode(latitude, longitude, dialog.getNodeName());
         } else {
             updateStatusMessage(languageService.getText("status.actionCancelled"));
         }
         resetMode();
     }
 
-    private void addNode(double latitude, double longitude) {
-        Node node = new Node(graphService.nextNodeId(), latitude, longitude);
+    private void addNode(double latitude, double longitude, String name) {
+        Node node = new Node(graphService.nextNodeId(), name, latitude, longitude);
         graphService.addNode(node);
         mapPanel.repaint();
+        updateStatusMessage(languageService.getText("status.nodeCreated"));
     }
 
     private void handleEdgeClick(Node node) {
@@ -191,7 +191,7 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
     private void openCreateEdgeDialog(Node source, Node destination) {
         CreateEdgeDialog dialog = new CreateEdgeDialog(this, languageService);
         double distance = GeoUtil.calculateDistance(source, destination);
-        dialog.setEdgeData(String.valueOf(source.getId()), String.valueOf(destination.getId()), distance);
+        dialog.setEdgeData(describeNode(source), describeNode(destination), distance);
         dialog.setVisible(true);
         finishCreateEdge(dialog, source, destination);
     }
@@ -242,7 +242,7 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
 
     private void openCalculateRouteDialog(Node origin, Node destination) {
         CalculateRouteDialog dialog = new CalculateRouteDialog(this, languageService);
-        dialog.setRouteEndpoints(String.valueOf(origin.getId()), String.valueOf(destination.getId()));
+        dialog.setRouteEndpoints(describeNode(origin), describeNode(destination));
         dialog.setVisible(true);
         finishCalculateRoute(dialog, origin, destination);
     }
@@ -293,7 +293,11 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
         if (sequence.length() > 0) {
             sequence.append(languageService.getText("map.routeSeparator"));
         }
-        sequence.append(node.getId());
+        sequence.append(describeNode(node));
+    }
+
+    private String describeNode(Node node) {
+        return node.hasName() ? node.getName() : String.valueOf(node.getId());
     }
 
     public void cancelMode() {

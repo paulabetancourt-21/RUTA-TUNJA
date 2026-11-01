@@ -44,14 +44,15 @@ public class CsvLoaderServiceImpl implements CsvLoaderService {
     }
 
     private void parseAndAddNode(String line) {
-        String[] parts = line.split(",");
+        String[] parts = line.split(",", 4);
         if (parts.length < 3) {
             return;
         }
         int id = Integer.parseInt(parts[0].trim());
         double lat = Double.parseDouble(parts[1].trim());
         double lon = Double.parseDouble(parts[2].trim());
-        graphService.addNode(new Node(id, lat, lon));
+        String name = parts.length > 3 ? parts[3].trim() : "";
+        graphService.addNode(new Node(id, name, lat, lon));
     }
 
     private void parseAndAddEdge(String line) {
