@@ -228,26 +228,25 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [X] Crear menú `Preferences` únicamente para ajustes visuales o estéticos (tamaño del nodo, color de la ruta seleccionada, grosor de línea, color de elementos gráficos). Sin configuraciones técnicas.
 - [X] Implementar configuración de sentido (solo un sentido / doble sentido) al crear arista desde `Via > Crear nueva arista`
 - [X] Aplicar accesos únicamente `Alt + <letra>`
-- [ ] Crear panel de mapa con imagen base `.png` desde `src/main/resources/map/`
-- [ ] Implementar zoom que ajuste mapa Y todos los complementos (nodos, aristas, marcadores, ruta)
-- [ ] Implementar radio de tolerancia al click sobre nodo (parametrizable)
-- [ ] Dibujar nodos, aristas, ruta con color distinto, marcador origen/destino
-- [ ] Agregar barra de estado con Lat, Lon, Zoom
-- [ ] Verificar: ÚNICAMENTE menús. SIN botones. SIN menús desplegables
-- [ ] Sin lógica de negocio
+- [X] Crear panel de mapa con imagen base `.png` desde `src/main/resources/map/`
+- [x] Implementar zoom que ajuste mapa Y todos los complementos (nodos, aristas, marcadores, ruta)
+- [x] Implementar radio de tolerancia al click sobre nodo (parametrizable)
+- [x] Dibujar nodos, aristas, ruta con color distinto, marcador origen/destino
+- [x] Agregar barra de estado con Lat, Lon, Zoom
+- [x] Verificar: ÚNICAMENTE menús. SIN botones. SIN menús desplegables
+- [x] Sin lógica de negocio
 - [X] Integrar accesos `Alt + <letra>` según menús
 
 #### Criterio para pasar a FASE 7
-- [ ] Solo `JMenuBar`, `JMenu`, `JMenuItem`
-- [ ] Sin botones ni menús desplegables
-- [ ] Menú `Preferences` creado únicamente para ajustes visuales o estéticos
-- [ ] Zoom ajusta todo correctamente
-- [ ] Radio de tolerancia **10px** únicamente en `application.yml`
-- [ ] Ajustes visuales presentes en `Preferences`
-- [ ] Sentido configurable al crear arista
-- [ ] Accesos únicamente `Alt + <letra>`
-- [ ] Conversión geográfica implementada leyendo coordenadas desde `application.yml` o metadatos (sin interfaz configurable)
-- [ ] Revisar que NO existan textos hardcodeados en `view` ni `presenter`
+- [x] Solo `JMenuBar`, `JMenu`, `JMenuItem`
+- [x] Sin botones ni menús desplegables
+- [X] Zoom ajusta todo correctamente
+- [x] Radio de tolerancia **10px** únicamente en `application.yml`
+- [x] Ajustes visuales presentes en `Preferences`
+- [x] Sentido configurable al crear arista
+- [x] Accesos únicamente `Alt + <letra>`
+- [x] Conversión geográfica implementada leyendo coordenadas desde `application.yml` o metadatos (sin interfaz configurable)
+- [x] Revisar que NO existan textos hardcodeados en `view` ni `presenter`
 
 
 ### FASE 7: PRESENTADOR MVP
@@ -255,12 +254,12 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 **Estado:** BLOQUEADO
 
 #### Actividades
-- [ ] Crear interfaz `MapPresenter` en `co.edu.uptc.presenter`
-- [ ] Crear implementación concreta `MapPresenterImpl` en `co.edu.uptc.presenter`
-- [ ] Conectar eventos de menús desde `view` hacia `presenter`
-- [ ] Orquestar acciones usando únicamente interfaces del `model`
-- [ ] Integrar `LanguageService`
-- [ ] Integrar `ConfigService`
+- [x] Crear interfaz `MapPresenter` en `co.edu.uptc.presenter`
+- [x] Crear implementación concreta `MapPresenterImpl` en `co.edu.uptc.presenter`
+- [x] Conectar eventos de menús desde `view` hacia `presenter`
+- [x] Orquestar acciones usando únicamente interfaces del `model`
+- [x] Integrar `LanguageService`
+- [x] Integrar `ConfigService`
 - [ ] Integrar `LogService`
 - [ ] Instanciar todo desde `Main` por constructor
 - [ ] Verificar métodos cortos

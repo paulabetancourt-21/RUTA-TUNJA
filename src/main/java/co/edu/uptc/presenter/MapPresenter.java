@@ -4,6 +4,8 @@ import co.edu.uptc.model.Node;
 import co.edu.uptc.model.SavedRoute;
 import co.edu.uptc.view.map.MapClickListener;
 import co.edu.uptc.view.map.MapStyle;
+
+import java.io.File;
 import java.util.List;
 
 public interface MapPresenter extends MapClickListener {
@@ -35,4 +37,5 @@ public interface MapPresenter extends MapClickListener {
     void changeLanguage(String languageCode);
     void openHowItWorksDialog();
     void openAboutDialog();
+    void loadGraphFromFolder(File folder); 
 }

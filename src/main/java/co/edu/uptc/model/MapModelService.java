@@ -1,5 +1,6 @@
 package co.edu.uptc.model;
 
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,5 @@ public interface MapModelService {
     String saveRoute(String name);
     List<SavedRoute> getSavedRoutes();
     String clearRoute();
+    GraphLoadResult loadExternalGraph(File folder);
 }

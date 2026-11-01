@@ -33,6 +33,7 @@ import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
@@ -281,7 +282,10 @@ public class MainFrame extends JFrame implements MapView {
 
     @Override
     public void showOpenGraphDialog() {
-        new OpenGraphDialog(languageService).showOpenDialog(this);
+        File selectedFolder = new OpenGraphDialog(languageService).showOpenDialog(this);
+        if (selectedFolder != null) {
+            presenter.loadGraphFromFolder(selectedFolder);
+        }
     }
 
     @Override

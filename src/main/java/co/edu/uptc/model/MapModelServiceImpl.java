@@ -8,6 +8,7 @@ import co.edu.uptc.persistence.SavedRouteService;
 import co.edu.uptc.persistence.SavedRouteServiceImpl;
 import co.edu.uptc.util.GeoUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -286,5 +287,17 @@ public class MapModelServiceImpl implements MapModelService {
     private void clearRouteState() {
         currentRoute = new ArrayList<>();
         currentDistanceKm = 0.0;
+    }
+
+    @Override
+    public GraphLoadResult loadExternalGraph(File folder) {
+        try {
+            graphService.clearGraph();
+            csvLoader.loadNodes(new File(folder, "nodes.csv").getAbsolutePath());
+            csvLoader.loadEdges(new File(folder, "edges.csv").getAbsolutePath());
+            return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.ready"));
+        } catch (Exception exception) {
+            return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.graphLoadError"));
+        }
     }
 }

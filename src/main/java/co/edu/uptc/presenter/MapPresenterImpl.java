@@ -11,6 +11,7 @@ import co.edu.uptc.model.SavedRoute;
 import co.edu.uptc.view.MapView;
 import co.edu.uptc.view.map.MapStyle;
 
+import java.io.File;
 import java.util.List;
 
 public class MapPresenterImpl implements MapPresenter {
@@ -167,5 +168,10 @@ public class MapPresenterImpl implements MapPresenter {
     @Override
     public void openAboutDialog() {
         view.showAboutDialog();
+    }
+
+    @Override
+    public void loadGraphFromFolder(File folder) {
+        view.showGraphLoad(model.loadExternalGraph(folder));
     }
 }
