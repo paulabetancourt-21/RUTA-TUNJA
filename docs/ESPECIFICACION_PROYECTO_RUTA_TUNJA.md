@@ -184,18 +184,17 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [X] Crear interfaces `GraphService`, `RouteService`, `DijkstraService` en `co.edu.uptc.model`
 - [X] Crear implementaciones concretas en `co.edu.uptc.model`
 - [X] Implementar cálculo de peso con coordenadas geográficas
-- [ ] Implementar algoritmo Dijkstra
-- [ ] Documentar y aplicar decisión: Lista de Adyacencia o Matriz de Adyacencia con justificación
-- [ ] Asegurar métodos cortos y sin imports de Swing
-- [ ] Sin datos quemados
+- [X] Implementar algoritmo Dijkstra
+- [X] Documentar y aplicar decisión: Lista de Adyacencia o Matriz de Adyacencia con justificación
+- [X] Asegurar métodos cortos y sin imports de Swing
+- [X] Sin datos quemados
 
 #### Criterio para pasar a FASE 5
-- [ ] Entidades, interfaces e implementaciones creadas
-- [ ] Cálculo de peso por coordenadas funcional
-- [ ] Dijkstra funcional
-- [ ] Estructura de grafo elegida y justificada en documentación
-- [ ] Completamente desacoplado de `view`
-- [ ] Sin dependencia de Swing
+- [X] Entidades, interfaces e implementaciones creadas
+- [X] Cálculo de peso por coordenadas funcional
+- [X] Dijkstra funcional
+- [X] Estructura de grafo elegida y justificada en documentación
+- [X] Completamente desacoplado de `view`
 
 ### FASE 5: CARGA CSV
 **Objetivo:** Leer nodos y aristas desde archivos `.csv`. Sin datos quemados.  
