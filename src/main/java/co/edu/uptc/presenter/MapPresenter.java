@@ -4,7 +4,6 @@ import co.edu.uptc.model.Node;
 import co.edu.uptc.model.SavedRoute;
 import co.edu.uptc.view.map.MapClickListener;
 import co.edu.uptc.view.map.MapStyle;
-
 import java.util.List;
 
 public interface MapPresenter extends MapClickListener {
@@ -23,6 +22,7 @@ public interface MapPresenter extends MapClickListener {
     void showSavedRoute(SavedRoute route);
     void clearRoute();
     void resetGraph();
+    void createNewGraph();
     void saveGraph();
     void undo();
     void zoomIn();

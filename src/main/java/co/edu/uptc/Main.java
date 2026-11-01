@@ -25,7 +25,7 @@ public class Main {
         LanguageService languageService = new YamlLanguageService(configService);
         MainFrame mainFrame = new MainFrame(languageService, configService);
         MapModelService model = new MapModelServiceImpl(configService, languageService);
-        MapPresenter presenter = new MapPresenterImpl(mainFrame, model, languageService);
+        MapPresenter presenter = new MapPresenterImpl(mainFrame, model);
         mainFrame.setPresenter(presenter);
         presenter.start();
     }

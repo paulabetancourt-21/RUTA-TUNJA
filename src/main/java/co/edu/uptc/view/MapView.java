@@ -1,36 +1,63 @@
 package co.edu.uptc.view;
 
-import co.edu.uptc.model.Graph;
-import co.edu.uptc.model.Node;
+import co.edu.uptc.model.GraphLoadResult;
+import co.edu.uptc.model.GraphResetResult;
+import co.edu.uptc.model.InteractionResult;
+import co.edu.uptc.model.RouteResult;
+import co.edu.uptc.model.SaveRouteInfo;
 import co.edu.uptc.view.map.MapStyle;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface MapView {
+
     void start();
-    void showGraph(Graph graph);
-    void showRoute(List<Node> route);
-    void clearRoute();
+
+    void showGraphLoad(GraphLoadResult result);
+
+    void showGraphReset(GraphResetResult result);
+
+    void showInteraction(InteractionResult result);
+
+    void showGraphChanged(String message);
+
+    void showRouteResult(RouteResult result);
+
+    void showOptionalMessage(Optional<String> message);
+
+    void showSaveRouteInfo(SaveRouteInfo info);
+
+    void showSavedRoute(String message);
+
+    void showGraphSaved();
+
+    void showUndo();
+
+    void clearRoute(String message);
+
+    void confirmNewGraph();
+
     void updateStatusMessage(String message);
+
     void updateCoordinates(double lat, double lon, int zoomPercentage);
-    void showCreateNodeDialog(double latitude, double longitude);
-    void showCreateEdgeDialog(Node source, Node destination, double distanceKm);
-    void showCalculateRouteDialog(Node origin, Node destination);
-    void showSaveRouteDialog(String routeSummary);
-    void showConfigDialog(MapStyle style);
+
+    void showConfigDialog();
+
+    void applyStyle(MapStyle style);
+
     void showLoadLanguageDialog();
+
     void showOpenGraphDialog();
+
     void showHowItWorksDialog();
+
     void showAboutDialog();
-    void showMessage(String message, String title);
-    boolean confirm(String message, String title);
-    void refreshTexts();
-    void refreshMenuBar();
-    void setSelectedNode(Node node);
-    void setStyle(MapStyle style);
-    MapStyle getStyle();
+
+    void changeLanguage(String languageCode);
+
     void zoomIn();
+
     void zoomOut();
+
     void resetZoom();
-    void repaintMap();
 }

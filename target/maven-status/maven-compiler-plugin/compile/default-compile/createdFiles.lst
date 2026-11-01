@@ -9,7 +9,6 @@ co\edu\uptc\view\map\MapPanelImpl$1.class
 co\edu\uptc\view\MapView.class
 co\edu\uptc\view\help\AboutDialog.class
 co\edu\uptc\model\InteractionResult.class
-co\edu\uptc\presenter\MapPresenterImpl$1.class
 co\edu\uptc\view\help\ConfigDialog.class
 co\edu\uptc\view\main\StatusBar.class
 co\edu\uptc\view\map\MapClickListener.class
@@ -37,6 +36,7 @@ co\edu\uptc\model\RouteService.class
 co\edu\uptc\view\help\HowItWorksDialog.class
 co\edu\uptc\model\SaveRouteInfo.class
 co\edu\uptc\i18n\LanguageService.class
+co\edu\uptc\view\main\MainFrame$1.class
 co\edu\uptc\model\Edge.class
 co\edu\uptc\model\GraphLoadResult.class
 co\edu\uptc\model\Graph.class

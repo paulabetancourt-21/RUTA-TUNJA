@@ -3,7 +3,12 @@ package co.edu.uptc.view.main;
 import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.i18n.LanguageService;
 import co.edu.uptc.model.Graph;
+import co.edu.uptc.model.GraphLoadResult;
+import co.edu.uptc.model.GraphResetResult;
+import co.edu.uptc.model.InteractionResult;
 import co.edu.uptc.model.Node;
+import co.edu.uptc.model.RouteResult;
+import co.edu.uptc.model.SaveRouteInfo;
 import co.edu.uptc.presenter.MapPresenter;
 import co.edu.uptc.view.MapView;
 import co.edu.uptc.view.help.AboutDialog;
@@ -17,7 +22,6 @@ import co.edu.uptc.view.route.CalculateRouteDialog;
 import co.edu.uptc.view.route.SaveRouteDialog;
 import co.edu.uptc.view.via.CreateEdgeDialog;
 import co.edu.uptc.view.via.CreateNodeDialog;
-
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -30,6 +34,7 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
+import java.util.Optional;
 
 public class MainFrame extends JFrame implements MapView {
 
@@ -84,7 +89,99 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     @Override
-    public void showCreateNodeDialog(double latitude, double longitude) {
+    public void showGraphLoad(GraphLoadResult result) {
+        showGraph(result.graph(), result.message());
+    }
+
+    @Override
+    public void showGraphReset(GraphResetResult result) {
+        showGraph(result.graph(), result.message());
+    }
+
+    private void showGraph(Graph graph, String message) {
+        mapPanel.setGraph(graph);
+        updateStatusMessage(message);
+    }
+
+    @Override
+    public void showInteraction(InteractionResult result) {
+        switch (result.type()) {
+            case CREATE_NODE -> showCreateNodeDialog(result.latitude(), result.longitude());
+            case CREATE_EDGE -> showCreateEdgeDialog(result.origin(), result.destination(), result.distanceKm());
+            case CALCULATE_ROUTE -> showCalculateRouteDialog(result.origin(), result.destination());
+            case SELECT_NODE -> showSelectedNode(result);
+            case MESSAGE -> updateStatusMessage(result.message());
+            default -> { }
+        }
+    }
+
+    private void showSelectedNode(InteractionResult result) {
+        mapPanel.setSelectedNode(result.selectedNode());
+        updateStatusMessage(result.message());
+    }
+
+    @Override
+    public void showGraphChanged(String message) {
+        mapPanel.repaint();
+        updateStatusMessage(message);
+    }
+
+    @Override
+    public void showRouteResult(RouteResult result) {
+        mapPanel.setRoute(result.route());
+        updateStatusMessage(result.message());
+    }
+
+    @Override
+    public void showOptionalMessage(Optional<String> message) {
+        message.ifPresent(this::updateStatusMessage);
+    }
+
+    @Override
+    public void showSaveRouteInfo(SaveRouteInfo info) {
+        if (info.available()) {
+            showSaveRouteDialog(info.summary());
+        } else {
+            updateStatusMessage(info.message());
+        }
+    }
+
+    @Override
+    public void showSavedRoute(String message) {
+        refreshMenuBar();
+        updateStatusMessage(message);
+    }
+
+    @Override
+    public void showGraphSaved() {
+        showMessage(languageService.getText("message.graphSavedMessage"),
+                languageService.getText("message.graphSavedTitle"));
+        updateStatusMessage(languageService.getText("status.graphSaved"));
+    }
+
+    @Override
+    public void showUndo() {
+        updateStatusMessage(languageService.getText("status.undo"));
+    }
+
+    @Override
+    public void clearRoute(String message) {
+        mapPanel.setRoute(List.of());
+        updateStatusMessage(message);
+    }
+
+    @Override
+    public void confirmNewGraph() {
+        int option = JOptionPane.showConfirmDialog(this,
+                languageService.getText("message.confirmNewGraph"),
+                languageService.getText("message.newGraphTitle"),
+                JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            presenter.createNewGraph();
+        }
+    }
+
+    private void showCreateNodeDialog(double latitude, double longitude) {
         CreateNodeDialog dialog = new CreateNodeDialog(this, languageService);
         dialog.setCoordinates(latitude, longitude);
         dialog.setVisible(true);
@@ -99,8 +196,7 @@ public class MainFrame extends JFrame implements MapView {
         }
     }
 
-    @Override
-    public void showCreateEdgeDialog(Node source, Node destination, double distanceKm) {
+    private void showCreateEdgeDialog(Node source, Node destination, double distanceKm) {
         CreateEdgeDialog dialog = new CreateEdgeDialog(this, languageService);
         dialog.setEdgeData(describeNode(source), describeNode(destination), distanceKm);
         dialog.setVisible(true);
@@ -115,8 +211,7 @@ public class MainFrame extends JFrame implements MapView {
         }
     }
 
-    @Override
-    public void showCalculateRouteDialog(Node origin, Node destination) {
+    private void showCalculateRouteDialog(Node origin, Node destination) {
         CalculateRouteDialog dialog = new CalculateRouteDialog(this, languageService);
         dialog.setRouteEndpoints(describeNode(origin), describeNode(destination));
         dialog.setVisible(true);
@@ -131,8 +226,7 @@ public class MainFrame extends JFrame implements MapView {
         }
     }
 
-    @Override
-    public void showSaveRouteDialog(String routeSummary) {
+    private void showSaveRouteDialog(String routeSummary) {
         SaveRouteDialog dialog = new SaveRouteDialog(this, languageService, routeSummary);
         dialog.setVisible(true);
         forwardSaveRoute(dialog);
@@ -144,9 +238,17 @@ public class MainFrame extends JFrame implements MapView {
         }
     }
 
+    private void showLanguageChanged() {
+        updateStatusMessage(languageService.getText("status.languageChanged"));
+    }
+
+    private String describeNode(Node node) {
+        return node.hasName() ? node.getName() : String.valueOf(node.getId());
+    }
+
     @Override
-    public void showConfigDialog(MapStyle style) {
-        ConfigDialog dialog = new ConfigDialog(this, languageService, style);
+    public void showConfigDialog() {
+        ConfigDialog dialog = new ConfigDialog(this, languageService, mapPanel.getStyle());
         dialog.setVisible(true);
         forwardConfig(dialog);
     }
@@ -155,6 +257,12 @@ public class MainFrame extends JFrame implements MapView {
         if (dialog.isConfirmed()) {
             presenter.applyStyle(dialog.buildStyle());
         }
+    }
+
+    @Override
+    public void applyStyle(MapStyle style) {
+        mapPanel.setStyle(style);
+        updateStatusMessage(languageService.getText("status.configurationUpdated"));
     }
 
     @Override
@@ -187,18 +295,12 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     @Override
-    public void showMessage(String message, String title) {
-        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    public void changeLanguage(String languageCode) {
+        languageService.setLanguage(languageCode);
+        refreshTexts();
     }
 
-    @Override
-    public boolean confirm(String message, String title) {
-        return JOptionPane.showConfirmDialog(this, message, title,
-                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-    }
-
-    @Override
-    public void refreshTexts() {
+    private void refreshTexts() {
         setTitle(languageService.getText("app.title"));
         refreshMenuBar();
         statusBar.applyLanguage();
@@ -206,49 +308,10 @@ public class MainFrame extends JFrame implements MapView {
         showLanguageChanged();
     }
 
-    private void showLanguageChanged() {
-        updateStatusMessage(languageService.getText("status.languageChanged"));
-    }
-
-    @Override
-    public void refreshMenuBar() {
+    private void refreshMenuBar() {
         setJMenuBar(new MainMenuBar(languageService, presenter));
         revalidate();
         repaint();
-    }
-
-    private String describeNode(Node node) {
-        return node.hasName() ? node.getName() : String.valueOf(node.getId());
-    }
-
-    @Override
-    public void showGraph(Graph graph) {
-        mapPanel.setGraph(graph);
-    }
-
-    @Override
-    public void showRoute(List<Node> route) {
-        mapPanel.setRoute(route);
-    }
-
-    @Override
-    public void clearRoute() {
-        mapPanel.setRoute(List.of());
-    }
-
-    @Override
-    public void setSelectedNode(Node node) {
-        mapPanel.setSelectedNode(node);
-    }
-
-    @Override
-    public void setStyle(MapStyle style) {
-        mapPanel.setStyle(style);
-    }
-
-    @Override
-    public MapStyle getStyle() {
-        return mapPanel.getStyle();
     }
 
     @Override
@@ -276,9 +339,8 @@ public class MainFrame extends JFrame implements MapView {
         updateStatusMessage(String.format(languageService.getText("status.zoomChanged"), percentage));
     }
 
-    @Override
-    public void repaintMap() {
-        mapPanel.repaint();
+    private void showMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
     }
 
     @Override

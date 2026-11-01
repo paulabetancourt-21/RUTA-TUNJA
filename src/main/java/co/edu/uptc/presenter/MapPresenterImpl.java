@@ -1,6 +1,5 @@
 package co.edu.uptc.presenter;
 
-import co.edu.uptc.i18n.LanguageService;
 import co.edu.uptc.model.GraphLoadResult;
 import co.edu.uptc.model.GraphResetResult;
 import co.edu.uptc.model.InteractionResult;
@@ -18,19 +17,15 @@ public class MapPresenterImpl implements MapPresenter {
 
     private final MapView view;
     private final MapModelService model;
-    private final LanguageService languageService;
 
-    public MapPresenterImpl(MapView view, MapModelService model, LanguageService languageService) {
+    public MapPresenterImpl(MapView view, MapModelService model) {
         this.view = view;
         this.model = model;
-        this.languageService = languageService;
     }
 
     @Override
     public void start() {
-        GraphLoadResult result = model.loadGraph();
-        view.showGraph(result.graph());
-        view.updateStatusMessage(result.message());
+        view.showGraphLoad(model.loadGraph());
         view.start();
     }
 
@@ -51,42 +46,22 @@ public class MapPresenterImpl implements MapPresenter {
 
     @Override
     public void onMapClicked(double latitude, double longitude, Node node) {
-        renderInteraction(model.handleClick(latitude, longitude, node));
-    }
-
-    private void renderInteraction(InteractionResult result) {
-        switch (result.type()) {
-            case CREATE_NODE -> view.showCreateNodeDialog(result.latitude(), result.longitude());
-            case CREATE_EDGE -> view.showCreateEdgeDialog(result.origin(), result.destination(), result.distanceKm());
-            case CALCULATE_ROUTE -> view.showCalculateRouteDialog(result.origin(), result.destination());
-            case SELECT_NODE -> showSelectedNode(result);
-            case MESSAGE -> view.updateStatusMessage(result.message());
-            default -> { }
-        }
-    }
-
-    private void showSelectedNode(InteractionResult result) {
-        view.setSelectedNode(result.selectedNode());
-        view.updateStatusMessage(result.message());
+        view.showInteraction(model.handleClick(latitude, longitude, node));
     }
 
     @Override
     public void createNode(double latitude, double longitude, String name) {
-        view.updateStatusMessage(model.createNode(latitude, longitude, name));
-        view.repaintMap();
+        view.showGraphChanged(model.createNode(latitude, longitude, name));
     }
 
     @Override
     public void createEdge(Node source, Node destination, boolean oneWay) {
-        view.updateStatusMessage(model.createEdge(source, destination, oneWay));
-        view.repaintMap();
+        view.showGraphChanged(model.createEdge(source, destination, oneWay));
     }
 
     @Override
     public void calculateRoute(Node origin, Node destination) {
-        RouteResult result = model.calculateRoute(origin, destination);
-        view.showRoute(result.route());
-        view.updateStatusMessage(result.message());
+        view.showRouteResult(model.calculateRoute(origin, destination));
     }
 
     @Override
@@ -96,23 +71,17 @@ public class MapPresenterImpl implements MapPresenter {
 
     @Override
     public void cancelInteraction() {
-        model.cancelInteraction().ifPresent(view::updateStatusMessage);
+        view.showOptionalMessage(model.cancelInteraction());
     }
 
     @Override
     public void openSaveRouteDialog() {
-        SaveRouteInfo info = model.getSaveInfo();
-        if (info.available()) {
-            view.showSaveRouteDialog(info.summary());
-        } else {
-            view.updateStatusMessage(info.message());
-        }
+        view.showSaveRouteInfo(model.getSaveInfo());
     }
 
     @Override
     public void saveCurrentRoute(String name) {
-        view.updateStatusMessage(model.saveRoute(name));
-        view.refreshMenuBar();
+        view.showSavedRoute(model.saveRoute(name));
     }
 
     @Override
@@ -121,39 +90,33 @@ public class MapPresenterImpl implements MapPresenter {
     }
 
     @Override
-    public void showSavedRoute(SavedRoute savedRoute) {
-        RouteResult result = model.resolveSavedRoute(savedRoute);
-        view.showRoute(result.route());
-        view.updateStatusMessage(result.message());
+    public void showSavedRoute(SavedRoute route) {
+        view.showRouteResult(model.resolveSavedRoute(route));
     }
 
     @Override
     public void clearRoute() {
-        view.clearRoute();
-        view.updateStatusMessage(model.clearRoute());
+        view.clearRoute(model.clearRoute());
     }
 
     @Override
     public void resetGraph() {
-        if (!view.confirm(languageService.getText("message.confirmNewGraph"),
-                languageService.getText("message.newGraphTitle"))) {
-            return;
-        }
-        GraphResetResult result = model.resetGraph();
-        view.showGraph(result.graph());
-        view.updateStatusMessage(result.message());
+        view.confirmNewGraph();
+    }
+
+    @Override
+    public void createNewGraph() {
+        view.showGraphReset(model.resetGraph());
     }
 
     @Override
     public void saveGraph() {
-        view.showMessage(languageService.getText("message.graphSavedMessage"),
-                languageService.getText("message.graphSavedTitle"));
-        view.updateStatusMessage(languageService.getText("status.graphSaved"));
+        view.showGraphSaved();
     }
 
     @Override
     public void undo() {
-        view.updateStatusMessage(languageService.getText("status.undo"));
+        view.showUndo();
     }
 
     @Override
@@ -178,13 +141,12 @@ public class MapPresenterImpl implements MapPresenter {
 
     @Override
     public void openConfigDialog() {
-        view.showConfigDialog(view.getStyle());
+        view.showConfigDialog();
     }
 
     @Override
     public void applyStyle(MapStyle style) {
-        view.setStyle(style);
-        view.updateStatusMessage(languageService.getText("status.configurationUpdated"));
+        view.applyStyle(style);
     }
 
     @Override
@@ -194,8 +156,7 @@ public class MapPresenterImpl implements MapPresenter {
 
     @Override
     public void changeLanguage(String languageCode) {
-        languageService.setLanguage(languageCode);
-        view.refreshTexts();
+        view.changeLanguage(languageCode);
     }
 
     @Override
