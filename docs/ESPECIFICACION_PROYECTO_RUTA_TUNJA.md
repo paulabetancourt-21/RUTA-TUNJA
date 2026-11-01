@@ -221,13 +221,13 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 **Estado:** BLOQUEADO
 
 #### Actividades
-- [ ] Crear interfaz `MapView` en `co.edu.uptc.view`
-- [ ] Crear implementación concreta `MapViewImpl` en `co.edu.uptc.view` con Swing
-- [ ] Crear `JMenuBar` con menús `Via`, `Route`, `Preferences`, `Help` (nombres según `i18n`)
-- [ ] Agregar items: `Crear nuevo nodo`, `Crear nueva arista`, `Calcular ruta`, `Guardar ruta`, `Limpiar ruta`
-- [ ] Crear menú `Preferences` únicamente para ajustes visuales o estéticos (tamaño del nodo, color de la ruta seleccionada, grosor de línea, color de elementos gráficos). Sin configuraciones técnicas.
-- [ ] Implementar configuración de sentido (solo un sentido / doble sentido) al crear arista desde `Via > Crear nueva arista`
-- [ ] Aplicar accesos únicamente `Alt + <letra>`
+- [X] Crear interfaz `MapView` en `co.edu.uptc.view`
+- [X] Crear implementación concreta `MapViewImpl` en `co.edu.uptc.view` con Swing
+- [X] Crear `JMenuBar` con menús `Via`, `Route`, `Help` (nombres según `i18n`)
+- [X] Agregar items: `Crear nuevo nodo`, `Crear nueva arista`, `Calcular ruta`, `Guardar ruta`, `Limpiar ruta`
+- [X] Crear menú `Preferences` únicamente para ajustes visuales o estéticos (tamaño del nodo, color de la ruta seleccionada, grosor de línea, color de elementos gráficos). Sin configuraciones técnicas.
+- [X] Implementar configuración de sentido (solo un sentido / doble sentido) al crear arista desde `Via > Crear nueva arista`
+- [X] Aplicar accesos únicamente `Alt + <letra>`
 - [ ] Crear panel de mapa con imagen base `.png` desde `src/main/resources/map/`
 - [ ] Implementar zoom que ajuste mapa Y todos los complementos (nodos, aristas, marcadores, ruta)
 - [ ] Implementar radio de tolerancia al click sobre nodo (parametrizable)
@@ -235,7 +235,7 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [ ] Agregar barra de estado con Lat, Lon, Zoom
 - [ ] Verificar: ÚNICAMENTE menús. SIN botones. SIN menús desplegables
 - [ ] Sin lógica de negocio
-- [ ] Integrar accesos `Alt + <letra>` según menús
+- [X] Integrar accesos `Alt + <letra>` según menús
 
 #### Criterio para pasar a FASE 7
 - [ ] Solo `JMenuBar`, `JMenu`, `JMenuItem`

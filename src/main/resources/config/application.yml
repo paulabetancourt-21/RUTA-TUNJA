@@ -9,14 +9,15 @@ files:
   externalI18nDir: extraI18n/
 
 map:
-  imagePath: map/tunjaMap.png
-  # Coordenadas geográficas proporcionadas por el usuario
-  # NO configurables desde interfaz
-  geoReference:
-    topLeftLat: 0.0
-    topLeftLon: 0.0
-    bottomRightLat: 0.0
-    bottomRightLon: 0.0
+  imagePath: map/tunja.png
+
+# Coordenadas geográficas proporcionadas por el usuario
+# NO configurables desde interfaz
+geoReference:
+  topLeftLat: 5.587388
+  topLeftLon: -73.385014
+  bottomRightLat: 5.489838
+  bottomRightLon: -73.317344
 
 graph:
   nodesCsv: csv/nodes.csv

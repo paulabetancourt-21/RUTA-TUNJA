@@ -17,6 +17,7 @@ import co.edu.uptc.view.via.CreateNodeDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import java.awt.BorderLayout;
 
 public class MainFrame extends JFrame implements MapView {
@@ -37,13 +38,18 @@ public class MainFrame extends JFrame implements MapView {
     private void initLayout() {
         configureWindow();
         setJMenuBar(new MainMenuBar(languageService, this));
-        add((JPanel) mapPanel, BorderLayout.CENTER);
+        
+        JScrollPane scrollPane = new JScrollPane((JPanel) mapPanel);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        
+        add(scrollPane, BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
     }
 
     private void configureWindow() {
         setTitle("Mapa Interactivo Tunja");
-        setSize(1024, 768);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
