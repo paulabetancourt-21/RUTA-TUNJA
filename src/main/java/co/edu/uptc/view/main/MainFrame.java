@@ -398,7 +398,16 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
     }
 
     public void openLoadLanguageDialog() {
-        new LoadLanguageDialog(this, languageService).setVisible(true);
+        LoadLanguageDialog dialog = new LoadLanguageDialog(this, languageService);
+        dialog.setVisible(true);
+        applyLoadedLanguage(dialog);
+    }
+
+    private void applyLoadedLanguage(LoadLanguageDialog dialog) {
+        String languageCode = dialog.getLoadedLanguageCode();
+        if (languageCode != null) {
+            changeLanguage(languageCode);
+        }
     }
 
     public void openHowItWorksDialog() {

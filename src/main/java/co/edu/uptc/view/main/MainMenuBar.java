@@ -103,11 +103,32 @@ public class MainMenuBar extends JMenuBar {
 
     private JMenu buildLanguageSubMenu() {
         JMenu langMenu = createMenu("menu.language", KeyEvent.VK_I);
-        addItem(langMenu, "menu.spanish", KeyEvent.VK_E, ctrlAlt(KeyEvent.VK_1), event -> mainFrame.changeLanguage("es"));
-        addItem(langMenu, "menu.english", KeyEvent.VK_N, ctrlAlt(KeyEvent.VK_2), event -> mainFrame.changeLanguage("en"));
-        addItem(langMenu, "menu.french", KeyEvent.VK_F, ctrlAlt(KeyEvent.VK_3), event -> mainFrame.changeLanguage("fr"));
+        List<String> languages = languageService.getAvailableLanguages();
+        for (int index = 0; index < languages.size(); index++) {
+            addLanguageItem(langMenu, languages.get(index), index);
+        }
         addItem(langMenu, "menu.loadLanguage", KeyEvent.VK_C, ctrlShift(KeyEvent.VK_I), event -> mainFrame.openLoadLanguageDialog());
         return langMenu;
+    }
+
+    private void addLanguageItem(JMenu menu, String languageCode, int index) {
+        JMenuItem item = new JMenuItem(languageLabel(languageCode));
+        item.setAccelerator(languageAccelerator(index));
+        item.addActionListener(event -> mainFrame.changeLanguage(languageCode));
+        menu.add(item);
+    }
+
+    private String languageLabel(String languageCode) {
+        String key = "language." + languageCode;
+        String label = languageService.getText(key);
+        return key.equals(label) ? languageCode.toUpperCase() : label;
+    }
+
+    private KeyStroke languageAccelerator(int index) {
+        if (index < 0 || index > 8) {
+            return null;
+        }
+        return ctrlAlt(KeyEvent.VK_1 + index);
     }
 
     private JMenu createMenu(String titleKey, int mnemonic) {

@@ -38,6 +38,11 @@ menu:
   howItWorks: "How does it work?"
   about: "About..."
 
+language:
+  es: "Español"
+  en: "English"
+  fr: "Français"
+
 status:
   ready: "Ready. Use the menus to build the graph or calculate a route."
   lat: "Lat"
@@ -109,9 +114,12 @@ dialog:
   loadLanguage:
     title: "Load extra language"
     name: "Language name"
+    code: "Two-letter code (e.g. de)"
     fromFile: "From file..."
     add: "Add"
     filter: "YAML files (*.yml)"
+    errorTitle: "Language loading error"
+    error: "Could not load. Use a valid .yml file and a two-letter code."
   howItWorks:
     title: "How does it work?"
     heading: "Steps to build the graph and calculate routes"

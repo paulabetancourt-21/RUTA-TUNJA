@@ -38,6 +38,11 @@ menu:
   howItWorks: "¿Cómo funciona?"
   about: "Acerca de..."
 
+language:
+  es: "Español"
+  en: "English"
+  fr: "Français"
+
 status:
   ready: "Listo. Usa los menús para construir el grafo o calcular una ruta."
   lat: "Lat"
@@ -109,9 +114,12 @@ dialog:
   loadLanguage:
     title: "Cargar idioma extra"
     name: "Nombre del idioma"
+    code: "Código de dos letras (ej. de)"
     fromFile: "Desde archivo..."
     add: "Agregar"
     filter: "Archivos YAML (*.yml)"
+    errorTitle: "Error al cargar idioma"
+    error: "No se pudo cargar. Usa un archivo .yml válido y un código de dos letras."
   howItWorks:
     title: "¿Cómo funciona?"
     heading: "Pasos para construir el grafo y calcular rutas"

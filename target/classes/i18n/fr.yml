@@ -38,6 +38,11 @@ menu:
   howItWorks: "Comment ça marche ?"
   about: "À propos..."
 
+language:
+  es: "Español"
+  en: "English"
+  fr: "Français"
+
 status:
   ready: "Prêt. Utilisez les menus pour construire le graphe ou calculer un itinéraire."
   lat: "Lat"
@@ -109,9 +114,12 @@ dialog:
   loadLanguage:
     title: "Charger une langue supplémentaire"
     name: "Nom de la langue"
+    code: "Code à deux lettres (ex. de)"
     fromFile: "Depuis un fichier..."
     add: "Ajouter"
     filter: "Fichiers YAML (*.yml)"
+    errorTitle: "Erreur de chargement de la langue"
+    error: "Impossible de charger. Utilisez un fichier .yml valide et un code à deux lettres."
   howItWorks:
     title: "Comment ça marche ?"
     heading: "Étapes pour construire le graphe et calculer des itinéraires"
