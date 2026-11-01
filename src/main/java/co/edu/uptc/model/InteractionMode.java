@@ -1,4 +1,4 @@
-package co.edu.uptc.view.main;
+package co.edu.uptc.model;
 
 public enum InteractionMode {
     NONE,

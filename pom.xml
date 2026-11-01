@@ -16,6 +16,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <snakeyaml.version>2.2</snakeyaml.version>
+        <flatlaf.version>3.4.1</flatlaf.version>
     </properties>
 
     <dependencies>
@@ -29,6 +30,11 @@
             <artifactId>lombok</artifactId>
             <version>1.18.32</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>${flatlaf.version}</version>
         </dependency>
     </dependencies>
 

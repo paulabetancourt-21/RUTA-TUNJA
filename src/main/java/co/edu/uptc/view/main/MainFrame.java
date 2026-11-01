@@ -2,33 +2,22 @@ package co.edu.uptc.view.main;
 
 import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.i18n.LanguageService;
-import co.edu.uptc.model.DijkstraService;
-import co.edu.uptc.model.DijkstraServiceImpl;
-import co.edu.uptc.model.Edge;
 import co.edu.uptc.model.Graph;
-import co.edu.uptc.model.GraphService;
-import co.edu.uptc.model.GraphServiceImpl;
 import co.edu.uptc.model.Node;
-import co.edu.uptc.model.RouteService;
-import co.edu.uptc.model.RouteServiceImpl;
-import co.edu.uptc.model.SavedRoute;
-import co.edu.uptc.persistence.CsvLoaderService;
-import co.edu.uptc.persistence.CsvLoaderServiceImpl;
-import co.edu.uptc.persistence.SavedRouteService;
-import co.edu.uptc.persistence.SavedRouteServiceImpl;
-import co.edu.uptc.util.GeoUtil;
+import co.edu.uptc.presenter.MapPresenter;
 import co.edu.uptc.view.MapView;
 import co.edu.uptc.view.help.AboutDialog;
 import co.edu.uptc.view.help.ConfigDialog;
 import co.edu.uptc.view.help.HowItWorksDialog;
 import co.edu.uptc.view.help.LoadLanguageDialog;
-import co.edu.uptc.view.map.MapClickListener;
 import co.edu.uptc.view.map.MapPanelImpl;
+import co.edu.uptc.view.map.MapStyle;
 import co.edu.uptc.view.options.OpenGraphDialog;
 import co.edu.uptc.view.route.CalculateRouteDialog;
 import co.edu.uptc.view.route.SaveRouteDialog;
 import co.edu.uptc.view.via.CreateEdgeDialog;
 import co.edu.uptc.view.via.CreateNodeDialog;
+
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -40,42 +29,33 @@ import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-public class MainFrame extends JFrame implements MapView, MapClickListener {
+public class MainFrame extends JFrame implements MapView {
 
     private static final double ZOOM_STEP = 1.2;
 
     private final LanguageService languageService;
-    private final ConfigService configService;
     private final StatusBar statusBar;
     private final MapPanelImpl mapPanel;
-    private final GraphService graphService = new GraphServiceImpl();
-    private final CsvLoaderService csvLoader = new CsvLoaderServiceImpl(graphService);
-    private final DijkstraService dijkstraService = new DijkstraServiceImpl(graphService);
-    private final RouteService routeService = new RouteServiceImpl();
-    private final SavedRouteService savedRouteService;
-    private InteractionMode mode = InteractionMode.NONE;
-    private Node pendingNode;
-    private List<Node> currentRoute = new ArrayList<>();
-    private double currentDistanceKm;
+    private MapPresenter presenter;
 
     public MainFrame(LanguageService languageService, ConfigService configService) {
         this.languageService = languageService;
-        this.configService = configService;
-        this.savedRouteService = new SavedRouteServiceImpl(configService);
         this.statusBar = new StatusBar(languageService);
         this.mapPanel = new MapPanelImpl(configService, languageService);
         initLayout();
-        initInteraction();
-        loadGraph();
+        registerEscapeKey();
+    }
+
+    public void setPresenter(MapPresenter presenter) {
+        this.presenter = presenter;
+        this.mapPanel.setClickListener(presenter);
+        refreshMenuBar();
     }
 
     private void initLayout() {
         configureWindow();
-        setJMenuBar(new MainMenuBar(languageService, this));
         add(createScrollPane(), BorderLayout.CENTER);
         add(statusBar, BorderLayout.SOUTH);
     }
@@ -95,11 +75,6 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
         setLayout(new BorderLayout());
     }
 
-    private void initInteraction() {
-        mapPanel.setClickListener(this);
-        registerEscapeKey();
-    }
-
     private void registerEscapeKey() {
         JRootPane rootPane = getRootPane();
         String actionKey = "cancelInteraction";
@@ -108,327 +83,142 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
         rootPane.getActionMap().put(actionKey, new CancelAction());
     }
 
-    private void loadGraph() {
-        try {
-            csvLoader.loadNodes(configService.getString("graph.nodesCsv"));
-            csvLoader.loadEdges(configService.getString("graph.edgesCsv"));
-            mapPanel.setGraph(graphService.getGraph());
-        } catch (IOException exception) {
-            updateStatusMessage(languageService.getText("status.graphLoadError"));
-        }
-    }
-
-    public void startCreateNode() {
-        enterMode(InteractionMode.CREATE_NODE, "status.clickNodeHint");
-    }
-
-    public void startCreateEdge() {
-        enterMode(InteractionMode.CREATE_EDGE, "status.clickOriginNode");
-    }
-
-    public void startCalculateRoute() {
-        enterMode(InteractionMode.CALCULATE_ROUTE, "status.clickOriginNode");
-    }
-
-    private void enterMode(InteractionMode newMode, String hintKey) {
-        resetMode();
-        this.mode = newMode;
-        updateStatusMessage(languageService.getText(hintKey));
-    }
-
     @Override
-    public void onMapClicked(double latitude, double longitude, Node node) {
-        if (mode == InteractionMode.CREATE_NODE) {
-            openCreateNodeDialog(latitude, longitude);
-        } else if (mode == InteractionMode.CREATE_EDGE) {
-            handleEdgeClick(node);
-        } else if (mode == InteractionMode.CALCULATE_ROUTE) {
-            handleRouteClick(node);
-        }
-    }
-
-    private void openCreateNodeDialog(double latitude, double longitude) {
+    public void showCreateNodeDialog(double latitude, double longitude) {
         CreateNodeDialog dialog = new CreateNodeDialog(this, languageService);
         dialog.setCoordinates(latitude, longitude);
         dialog.setVisible(true);
-        finishCreateNode(dialog, latitude, longitude);
+        forwardCreateNode(dialog, latitude, longitude);
     }
 
-    private void finishCreateNode(CreateNodeDialog dialog, double latitude, double longitude) {
+    private void forwardCreateNode(CreateNodeDialog dialog, double latitude, double longitude) {
         if (dialog.isConfirmed()) {
-            addNode(latitude, longitude, dialog.getNodeName());
+            presenter.createNode(latitude, longitude, dialog.getNodeName());
         } else {
-            updateStatusMessage(languageService.getText("status.actionCancelled"));
-        }
-        resetMode();
-    }
-
-    private void addNode(double latitude, double longitude, String name) {
-        Node node = new Node(graphService.nextNodeId(), name, latitude, longitude);
-        graphService.addNode(node);
-        mapPanel.repaint();
-        updateStatusMessage(languageService.getText("status.nodeCreated"));
-    }
-
-    private void handleEdgeClick(Node node) {
-        if (node == null) {
-            showInvalidNode();
-        } else if (pendingNode == null) {
-            selectPendingNode(node);
-        } else {
-            completeEdgeSelection(node);
+            presenter.notifyCancelled();
         }
     }
 
-    private void completeEdgeSelection(Node node) {
-        if (pendingNode.getId() == node.getId()) {
-            showInvalidNode();
-            return;
-        }
-        openCreateEdgeDialog(pendingNode, node);
-    }
-
-    private void openCreateEdgeDialog(Node source, Node destination) {
+    @Override
+    public void showCreateEdgeDialog(Node source, Node destination, double distanceKm) {
         CreateEdgeDialog dialog = new CreateEdgeDialog(this, languageService);
-        double distance = GeoUtil.calculateDistance(source, destination);
-        dialog.setEdgeData(describeNode(source), describeNode(destination), distance);
+        dialog.setEdgeData(describeNode(source), describeNode(destination), distanceKm);
         dialog.setVisible(true);
-        finishCreateEdge(dialog, source, destination);
+        forwardCreateEdge(dialog, source, destination);
     }
 
-    private void finishCreateEdge(CreateEdgeDialog dialog, Node source, Node destination) {
+    private void forwardCreateEdge(CreateEdgeDialog dialog, Node source, Node destination) {
         if (dialog.isConfirmed()) {
-            graphService.addEdge(buildEdge(source, destination, dialog.isOneWay()));
-            mapPanel.repaint();
-            updateStatusMessage(languageService.getText("status.edgeCreated"));
+            presenter.createEdge(source, destination, dialog.isOneWay());
         } else {
-            updateStatusMessage(languageService.getText("status.actionCancelled"));
-        }
-        resetMode();
-    }
-
-    private Edge buildEdge(Node source, Node destination, boolean oneWay) {
-        double weight = GeoUtil.calculateDistance(source, destination);
-        return new Edge(source, destination, oneWay, weight);
-    }
-
-    private void handleRouteClick(Node node) {
-        if (node == null) {
-            showInvalidNode();
-        } else if (pendingNode == null) {
-            selectPendingNode(node);
-        } else {
-            completeRouteSelection(node);
+            presenter.notifyCancelled();
         }
     }
 
-    private void completeRouteSelection(Node node) {
-        if (pendingNode.getId() == node.getId()) {
-            showInvalidNode();
-            return;
-        }
-        openCalculateRouteDialog(pendingNode, node);
-    }
-
-    private void selectPendingNode(Node node) {
-        pendingNode = node;
-        mapPanel.setSelectedNode(node);
-        updateStatusMessage(languageService.getText("status.clickDestinationNode"));
-    }
-
-    private void showInvalidNode() {
-        updateStatusMessage(languageService.getText("status.invalidNode"));
-    }
-
-    private void openCalculateRouteDialog(Node origin, Node destination) {
+    @Override
+    public void showCalculateRouteDialog(Node origin, Node destination) {
         CalculateRouteDialog dialog = new CalculateRouteDialog(this, languageService);
         dialog.setRouteEndpoints(describeNode(origin), describeNode(destination));
         dialog.setVisible(true);
-        finishCalculateRoute(dialog, origin, destination);
+        forwardCalculateRoute(dialog, origin, destination);
     }
 
-    private void finishCalculateRoute(CalculateRouteDialog dialog, Node origin, Node destination) {
+    private void forwardCalculateRoute(CalculateRouteDialog dialog, Node origin, Node destination) {
         if (dialog.isConfirmed()) {
-            calculateRoute(origin, destination);
+            presenter.calculateRoute(origin, destination);
         } else {
-            updateStatusMessage(languageService.getText("status.actionCancelled"));
+            presenter.notifyCancelled();
         }
-        resetMode();
     }
 
-    private void calculateRoute(Node origin, Node destination) {
-        List<Node> route = dijkstraService.calculateShortestPath(origin, destination);
-        if (route.isEmpty()) {
-            updateStatusMessage(languageService.getText("message.noRoute"));
-            return;
-        }
-        showRoute(route);
-        rememberRoute(route);
-        updateStatusMessage(buildRouteMessage(route));
-    }
-
-    private void rememberRoute(List<Node> route) {
-        currentRoute = new ArrayList<>(route);
-        currentDistanceKm = routeService.calculateTotalDistance(route);
-    }
-
-    private String buildRouteMessage(List<Node> route) {
-        String template = languageService.getText("status.routeCalculated");
-        return String.format(template, buildRouteSummary(route));
-    }
-
-    private String buildRouteSummary(List<Node> route) {
-        String nodeIds = buildNodeSequence(route);
-        double distance = routeService.calculateTotalDistance(route);
-        return String.format(languageService.getText("status.routeSummary"), nodeIds, distance);
-    }
-
-    private String buildNodeSequence(List<Node> route) {
-        StringBuilder sequence = new StringBuilder();
-        route.forEach(node -> appendNodeId(sequence, node));
-        return sequence.toString();
-    }
-
-    private void appendNodeId(StringBuilder sequence, Node node) {
-        if (sequence.length() > 0) {
-            sequence.append(languageService.getText("map.routeSeparator"));
-        }
-        sequence.append(describeNode(node));
-    }
-
-    private String describeNode(Node node) {
-        return node.hasName() ? node.getName() : String.valueOf(node.getId());
-    }
-
-    public void cancelMode() {
-        if (mode == InteractionMode.NONE) {
-            return;
-        }
-        resetMode();
-        updateStatusMessage(languageService.getText("status.actionCancelled"));
-    }
-
-    private void resetMode() {
-        this.mode = InteractionMode.NONE;
-        this.pendingNode = null;
-        mapPanel.setSelectedNode(null);
-    }
-
-    public void openSaveRouteDialog() {
-        if (currentRoute.size() < 2) {
-            updateStatusMessage(languageService.getText("status.noRouteToSave"));
-            return;
-        }
-        showSaveRouteDialog();
-    }
-
-    private void showSaveRouteDialog() {
-        SaveRouteDialog dialog = createSaveRouteDialog();
+    @Override
+    public void showSaveRouteDialog(String routeSummary) {
+        SaveRouteDialog dialog = new SaveRouteDialog(this, languageService, routeSummary);
         dialog.setVisible(true);
-        saveRouteIfConfirmed(dialog);
+        forwardSaveRoute(dialog);
     }
 
-    private SaveRouteDialog createSaveRouteDialog() {
-        return new SaveRouteDialog(this, languageService, buildRouteSummary(currentRoute));
-    }
-
-    private void saveRouteIfConfirmed(SaveRouteDialog dialog) {
-        if (!dialog.isConfirmed()) {
-            return;
+    private void forwardSaveRoute(SaveRouteDialog dialog) {
+        if (dialog.isConfirmed()) {
+            presenter.saveCurrentRoute(dialog.getRouteName());
         }
-        savedRouteService.save(buildSavedRoute(dialog.getRouteName()));
+    }
+
+    @Override
+    public void showConfigDialog(MapStyle style) {
+        ConfigDialog dialog = new ConfigDialog(this, languageService, style);
+        dialog.setVisible(true);
+        forwardConfig(dialog);
+    }
+
+    private void forwardConfig(ConfigDialog dialog) {
+        if (dialog.isConfirmed()) {
+            presenter.applyStyle(dialog.buildStyle());
+        }
+    }
+
+    @Override
+    public void showLoadLanguageDialog() {
+        LoadLanguageDialog dialog = new LoadLanguageDialog(this, languageService);
+        dialog.setVisible(true);
+        forwardLoadedLanguage(dialog);
+    }
+
+    private void forwardLoadedLanguage(LoadLanguageDialog dialog) {
+        String languageCode = dialog.getLoadedLanguageCode();
+        if (languageCode != null) {
+            presenter.changeLanguage(languageCode);
+        }
+    }
+
+    @Override
+    public void showOpenGraphDialog() {
+        new OpenGraphDialog(languageService).showOpenDialog(this);
+    }
+
+    @Override
+    public void showHowItWorksDialog() {
+        new HowItWorksDialog(this, languageService).setVisible(true);
+    }
+
+    @Override
+    public void showAboutDialog() {
+        new AboutDialog(this, languageService).setVisible(true);
+    }
+
+    @Override
+    public void showMessage(String message, String title) {
+        JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    @Override
+    public boolean confirm(String message, String title) {
+        return JOptionPane.showConfirmDialog(this, message, title,
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+    }
+
+    @Override
+    public void refreshTexts() {
+        setTitle(languageService.getText("app.title"));
         refreshMenuBar();
-        updateStatusMessage(languageService.getText("status.routeSaved"));
+        statusBar.applyLanguage();
+        mapPanel.repaint();
+        showLanguageChanged();
     }
 
-    private SavedRoute buildSavedRoute(String name) {
-        List<Integer> nodeIds = currentRoute.stream().map(Node::getId).toList();
-        return new SavedRoute(name, nodeIds, currentDistanceKm);
+    private void showLanguageChanged() {
+        updateStatusMessage(languageService.getText("status.languageChanged"));
     }
 
-    public List<SavedRoute> getSavedRoutes() {
-        return savedRouteService.findAll();
-    }
-
-    public void showSavedRoute(SavedRoute savedRoute) {
-        List<Node> route = toRouteNodes(savedRoute);
-        if (route.size() < 2) {
-            updateStatusMessage(languageService.getText("status.savedRouteUnavailable"));
-            return;
-        }
-        showRoute(route);
-        rememberRoute(route);
-        updateStatusMessage(buildRouteMessage(route));
-    }
-
-    private List<Node> toRouteNodes(SavedRoute savedRoute) {
-        List<Node> route = new ArrayList<>();
-        for (Integer nodeId : savedRoute.getNodeIds()) {
-            Node node = graphService.getGraph().getNodes().get(nodeId);
-            if (node == null) {
-                return new ArrayList<>();
-            }
-            route.add(node);
-        }
-        return route;
-    }
-
-    private void refreshMenuBar() {
-        setJMenuBar(new MainMenuBar(languageService, this));
+    @Override
+    public void refreshMenuBar() {
+        setJMenuBar(new MainMenuBar(languageService, presenter));
         revalidate();
         repaint();
     }
 
-    public void openOpenGraphDialog() {
-        new OpenGraphDialog(languageService).showOpenDialog(this);
-    }
-
-    public void openConfigDialog() {
-        ConfigDialog dialog = new ConfigDialog(this, languageService, mapPanel.getStyle());
-        dialog.setVisible(true);
-        applyConfig(dialog);
-    }
-
-    private void applyConfig(ConfigDialog dialog) {
-        if (!dialog.isConfirmed()) {
-            return;
-        }
-        mapPanel.setStyle(dialog.buildStyle());
-        updateStatusMessage(languageService.getText("status.configurationUpdated"));
-    }
-
-    public void openLoadLanguageDialog() {
-        LoadLanguageDialog dialog = new LoadLanguageDialog(this, languageService);
-        dialog.setVisible(true);
-        applyLoadedLanguage(dialog);
-    }
-
-    private void applyLoadedLanguage(LoadLanguageDialog dialog) {
-        String languageCode = dialog.getLoadedLanguageCode();
-        if (languageCode != null) {
-            changeLanguage(languageCode);
-        }
-    }
-
-    public void openHowItWorksDialog() {
-        new HowItWorksDialog(this, languageService).setVisible(true);
-    }
-
-    public void openAboutDialog() {
-        new AboutDialog(this, languageService).setVisible(true);
-    }
-
-    public void changeLanguage(String languageCode) {
-        languageService.setLanguage(languageCode);
-        refreshTexts();
-    }
-
-    private void refreshTexts() {
-        setTitle(languageService.getText("app.title"));
-        setJMenuBar(new MainMenuBar(languageService, this));
-        statusBar.applyLanguage();
-        mapPanel.repaint();
-        updateStatusMessage(languageService.getText("status.languageChanged"));
+    private String describeNode(Node node) {
+        return node.hasName() ? node.getName() : String.valueOf(node.getId());
     }
 
     @Override
@@ -443,65 +233,52 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
 
     @Override
     public void clearRoute() {
-        currentRoute = new ArrayList<>();
-        currentDistanceKm = 0.0;
-        mapPanel.setRoute(new ArrayList<>());
-        updateStatusMessage(languageService.getText("status.routeCleared"));
+        mapPanel.setRoute(List.of());
     }
 
-    public void resetGraph() {
-        int option = JOptionPane.showConfirmDialog(this,
-                languageService.getText("message.confirmNewGraph"),
-                languageService.getText("message.newGraphTitle"),
-                JOptionPane.YES_NO_OPTION);
-        handleNewGraph(option);
+    @Override
+    public void setSelectedNode(Node node) {
+        mapPanel.setSelectedNode(node);
     }
 
-    private void handleNewGraph(int option) {
-        if (option != JOptionPane.YES_OPTION) {
-            return;
-        }
-        resetGraphState();
-        updateStatusMessage(languageService.getText("status.newGraph"));
+    @Override
+    public void setStyle(MapStyle style) {
+        mapPanel.setStyle(style);
     }
 
-    private void resetGraphState() {
-        graphService.clearGraph();
-        resetMode();
-        clearRoute();
-        mapPanel.repaint();
+    @Override
+    public MapStyle getStyle() {
+        return mapPanel.getStyle();
     }
 
-    public void saveGraph() {
-        JOptionPane.showMessageDialog(this,
-                languageService.getText("message.graphSavedMessage"),
-                languageService.getText("message.graphSavedTitle"),
-                JOptionPane.INFORMATION_MESSAGE);
-        updateStatusMessage(languageService.getText("status.graphSaved"));
-    }
-
-    public void undo() {
-        updateStatusMessage(languageService.getText("status.undo"));
-    }
-
+    @Override
     public void zoomIn() {
-        mapPanel.setZoomFactor(mapPanel.getZoomFactor() * ZOOM_STEP);
-        reportZoom();
+        applyZoom(mapPanel.getZoomFactor() * ZOOM_STEP);
     }
 
+    @Override
     public void zoomOut() {
-        mapPanel.setZoomFactor(mapPanel.getZoomFactor() / ZOOM_STEP);
-        reportZoom();
+        applyZoom(mapPanel.getZoomFactor() / ZOOM_STEP);
     }
 
+    @Override
     public void resetZoom() {
-        mapPanel.setZoomFactor(1.0);
+        applyZoom(1.0);
+    }
+
+    private void applyZoom(double zoomFactor) {
+        mapPanel.setZoomFactor(zoomFactor);
         reportZoom();
     }
 
     private void reportZoom() {
         int percentage = (int) (mapPanel.getZoomFactor() * 100);
         updateStatusMessage(String.format(languageService.getText("status.zoomChanged"), percentage));
+    }
+
+    @Override
+    public void repaintMap() {
+        mapPanel.repaint();
     }
 
     @Override
@@ -522,7 +299,7 @@ public class MainFrame extends JFrame implements MapView, MapClickListener {
     private class CancelAction extends AbstractAction {
         @Override
         public void actionPerformed(ActionEvent event) {
-            cancelMode();
+            presenter.cancelInteraction();
         }
     }
 }
