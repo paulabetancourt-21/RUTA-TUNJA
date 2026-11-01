@@ -203,18 +203,18 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 #### Actividades
 - [X] Crear interfaz `CsvReaderService` en `co.edu.uptc.model` o `co.edu.uptc.util` (manteniendo desacoplamiento)
 - [X] Crear implementación concreta
-- [ ] Leer archivos `nodes.csv` y `edges.csv`
-- [ ] Aplicar estructura exacta `id,lat,lon` y `fromId,toId,oneWay`
-- [ ] Calcular peso únicamente con coordenadas geográficas (no leerlo desde CSV)
-- [ ] Validar datos leídos
-- [ ] Métodos cortos
+- [X] Leer archivos `nodes.csv` y `edges.csv`
+- [X] Aplicar estructura exacta `id,lat,lon` y `fromId,toId,oneWay`
+- [X] Calcular peso únicamente con coordenadas geográficas (no leerlo desde CSV)
+- [X] Validar datos leídos
+- [X] Métodos cortos
 
 #### Criterio para pasar a FASE 6
-- [ ] Lectura de `nodes.csv` y `edges.csv` funcional
-- [ ] Estructura exacta respetada
-- [ ] Peso calculado, no extraído desde CSV
-- [ ] Sin datos quemados
-- [ ] Integrado correctamente con `model`
+- [X] Lectura de `nodes.csv` y `edges.csv` funcional
+- [X] Estructura exacta respetada
+- [X] Peso calculado, no extraído desde CSV
+- [X] Sin datos quemados
+- [X] Integrado correctamente con `model`
 
 ### FASE 6: VISTA SWING (SOLO MENÚS)
 **Objetivo:** Únicamente menús de Swing. Mapa, zoom, radio de tolerancia, configuración gráfica.  
