@@ -10,4 +10,5 @@ public interface LanguageService {
     List<String> getAvailableLanguages();
     boolean isLanguageAvailable(String languageCode);
     boolean loadExternalLanguage(String languageCode, File file);
+    String getLanguageName(String languageCode);
 }

@@ -260,16 +260,15 @@ Cada fase debe estar completamente cumplida. NO se pasa a la siguiente fase si a
 - [x] Orquestar acciones usando únicamente interfaces del `model`
 - [x] Integrar `LanguageService`
 - [x] Integrar `ConfigService`
-- [ ] Integrar `LogService`
-- [ ] Instanciar todo desde `Main` por constructor
-- [ ] Verificar métodos cortos
-- [ ] Sin acoplamiento directo entre `view` y `model`
+- [X] Instanciar todo desde `Main` por constructor
+- [X] Verificar métodos cortos
+- [X] Sin acoplamiento directo entre `view` y `model`
 
 #### Criterio para pasar a FASE 8
-- [ ] Flujo completo vía interfaces
-- [ ] Sin import directo innecesario entre `view` y `model`
-- [ ] Presentador coordina correctamente todas las acciones
-- [ ] Inyección por constructor aplicada
+- [X] Flujo completo vía interfaces
+- [X] Sin import directo innecesario entre `view` y `model`
+- [X] Presentador coordina correctamente todas las acciones
+- [X] Inyección por constructor aplicada
 
 ### FASE 8: LOGS CON ROTACIÓN CADA 3 DÍAS
 **Objetivo:** Sistema de logs con rotación cada 3 días usando `java.util.logging`.  

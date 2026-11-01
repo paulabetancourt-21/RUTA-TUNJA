@@ -120,9 +120,7 @@ public class MainMenuBar extends JMenuBar {
     }
 
     private String languageLabel(String languageCode) {
-        String key = "language." + languageCode;
-        String label = languageService.getText(key);
-        return key.equals(label) ? languageCode.toUpperCase() : label;
+        return languageService.getLanguageName(languageCode);
     }
 
     private KeyStroke languageAccelerator(int index) {

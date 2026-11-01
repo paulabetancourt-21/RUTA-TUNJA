@@ -20,6 +20,7 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     private String currentLanguage;
     private Map<String, Map<String, Object>> externalLanguages;
     private List<String> externalLanguageCodes;
+    private Map<String, String> languageNames;
     private YamlLoader externalLoader;
 
     public YamlLanguageService(ConfigService configService) {
@@ -31,19 +32,16 @@ public class YamlLanguageService extends AbstractYamlService implements Language
 
     private void initCollections() {
         currentLanguage = configService.getString("i18n.defaultLanguage");
-        externalLanguages = new HashMap<String, Map<String, Object>>();
-        externalLanguageCodes = new ArrayList<String>();
+        externalLanguages = new HashMap<>();
+        externalLanguageCodes = new ArrayList<>();
+        languageNames = new HashMap<>();
         externalLoader = new YamlLoader();
     }
 
     private void loadExternalDirectory() {
-        String extension = configService.getString("files.i18nExtension");
-        File[] files = externalDirectory().listFiles((dir, name) -> name.endsWith(extension));
-        if (files != null) {
-            for (File file : files) {
-                loadExternalLanguage(file);
-            }
-        }
+        String ext = configService.getString("files.i18nExtension");
+        File[] files = externalDirectory().listFiles((d, n) -> n.endsWith(ext));
+        if (files != null) for (File f : files) loadExternalLanguage(f);
     }
 
     private File externalDirectory() {
@@ -52,28 +50,18 @@ public class YamlLanguageService extends AbstractYamlService implements Language
 
     @Override
     public List<String> getAvailableLanguages() {
-        List<String> languages = new ArrayList<String>();
-        List<String> base = configService.getList("i18n.availableLanguages");
-        if (base != null) {
-            languages.addAll(base);
-        }
-        for (String code : externalLanguageCodes) {
-            if (!languages.contains(code)) {
-                languages.add(code);
-            }
-        }
-        return languages;
+        List<String> list = new ArrayList<>(configService.getList("i18n.availableLanguages"));
+        externalLanguageCodes.stream().filter(c -> !list.contains(c)).forEach(list::add);
+        return list;
     }
 
     @Override
-    public boolean isLanguageAvailable(String languageCode) {
-        return getAvailableLanguages().contains(languageCode);
+    public boolean isLanguageAvailable(String code) {
+        return getAvailableLanguages().contains(code);
     }
 
     private String buildFileName() {
-        String prefix = configService.getString("files.i18nPrefix");
-        String extension = configService.getString("files.i18nExtension");
-        return prefix + currentLanguage + extension;
+        return configService.getString("files.i18nPrefix") + currentLanguage + configService.getString("files.i18nExtension");
     }
 
     private void ensureLoaded() {
@@ -88,47 +76,38 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     @Override
     public String getText(String key) {
         ensureLoaded();
-        Object value = getValue(key);
-        if (value == null) {
-            return key;
-        }
-        return String.valueOf(value);
+        Object val = getValue(key);
+        return val == null ? key : String.valueOf(val);
     }
 
     @Override
-    public void setLanguage(String languageCode) {
-        if (!isLanguageAvailable(languageCode)) {
-            return;
-        }
-        currentLanguage = languageCode;
-        if (externalLanguages.containsKey(currentLanguage)) {
-            dataMap = externalLanguages.get(currentLanguage);
+    public void setLanguage(String code) {
+        if (!isLanguageAvailable(code)) return;
+        currentLanguage = code;
+        if (externalLanguages.containsKey(code)) {
+            dataMap = externalLanguages.get(code);
             loaded = true;
             return;
         }
+        resetAndLoad();
+    }
+
+    private void resetAndLoad() {
         loaded = false;
-        dataMap = new HashMap<String, Object>();
+        dataMap = new HashMap<>();
         ensureLoaded();
     }
 
     @Override
     public boolean loadExternalLanguage(String languageCode, File file) {
         String code = normalizeCode(languageCode);
-        if (!validFile(file) || !validCode(code)) {
-            return false;
-        }
-        if (!storeFromFile(code, file)) {
-            return false;
-        }
+        if (!validFile(file) || !validCode(code) || !storeFromFile(code, file)) return false;
         persist(file, code);
         return true;
     }
 
     public boolean loadExternalLanguage(File file) {
-        if (!validFile(file)) {
-            return false;
-        }
-        return loadExternalLanguage(extractCode(file), file);
+        return validFile(file) && loadExternalLanguage(extractCode(file), file);
     }
 
     private String normalizeCode(String code) {
@@ -137,19 +116,13 @@ public class YamlLanguageService extends AbstractYamlService implements Language
 
     private boolean storeFromFile(String code, File file) {
         Map<String, Object> map = loadMap(file);
-        if (emptyMap(map)) {
-            return false;
-        }
+        if (emptyMap(map)) return false;
         store(code, map);
         return true;
     }
 
     private boolean validFile(File file) {
-        if (file == null) {
-            return false;
-        }
-        String ext = configService.getString("files.i18nExtension");
-        return file.getName().endsWith(ext);
+        return file != null && file.getName().endsWith(configService.getString("files.i18nExtension"));
     }
 
     private String extractCode(File file) {
@@ -167,39 +140,36 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     }
 
     private boolean emptyMap(Map<String, Object> map) {
-        if (map == null) {
-            return true;
-        }
-        return map.isEmpty();
+        return map == null || map.isEmpty();
     }
 
     private void store(String code, Map<String, Object> map) {
         externalLanguages.put(code, map);
-        if (!externalLanguageCodes.contains(code)) {
-            externalLanguageCodes.add(code);
-        }
+        if (!externalLanguageCodes.contains(code)) externalLanguageCodes.add(code);
+        extractAndStoreName(code, map);
+    }
+
+    private void extractAndStoreName(String code, Map<String, Object> map) {
+        Object lang = map.get("language");
+        Object name = lang instanceof Map ? ((Map<?, ?>) lang).get("name") : null;
+        if (name != null) languageNames.put(code, String.valueOf(name));
     }
 
     private void persist(File source, String code) {
         try {
             Path target = buildExternalPath(code);
-            if (!isSameFile(source, target)) {
-                copyFile(source, target);
-            }
-        } catch (IOException exception) {
-            // El idioma sigue disponible en memoria.
-        }
+            if (!isSameFile(source, target)) copyFile(source, target);
+        } catch (IOException ignored) {}
     }
 
     private Path buildExternalPath(String code) {
-        String directory = configService.getString("files.externalI18nDir");
-        String extension = configService.getString("files.i18nExtension");
-        return Paths.get(directory, code + extension);
+        String dir = configService.getString("files.externalI18nDir");
+        String ext = configService.getString("files.i18nExtension");
+        return Paths.get(dir, code + ext);
     }
 
     private boolean isSameFile(File source, Path target) {
-        Path normalizedSource = source.toPath().toAbsolutePath().normalize();
-        return normalizedSource.equals(target.toAbsolutePath().normalize());
+        return source.toPath().toAbsolutePath().normalize().equals(target.toAbsolutePath().normalize());
     }
 
     private void copyFile(File source, Path target) throws IOException {
@@ -210,5 +180,17 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     @Override
     public String getCurrentLanguage() {
         return currentLanguage;
+    }
+
+    @Override
+    public String getLanguageName(String code) {
+        String name = languageNames.get(code);
+        return name != null ? name : builtInName(code);
+    }
+
+    private String builtInName(String code) {
+        String key = "language." + code;
+        String text = getText(key);
+        return key.equals(text) ? code.toUpperCase() : text;
     }
 }
