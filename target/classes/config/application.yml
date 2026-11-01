@@ -24,7 +24,7 @@ graph:
   edgesCsv: csv/edges.csv
 
 routes:
-  savedFile: data/saved-routes.csv
+  savedFile: src/main/resources/data/saved-routes.csv
 
 tolerance:
   clickRadiusPx: 10

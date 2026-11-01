@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class MapModelServiceImpl implements MapModelService {
-
     private final ConfigService configService;
     private final LanguageService languageService;
     private final GraphService graphService = new GraphServiceImpl();
@@ -259,21 +258,32 @@ public class MapModelServiceImpl implements MapModelService {
 
     private List<Node> toRouteNodes(SavedRoute savedRoute) {
         List<Node> route = new ArrayList<>();
-        for (Integer nodeId : savedRoute.getNodeIds()) {
-            appendNode(route, nodeId);
+        for (Integer id : savedRoute.getNodeIds()) {
+            Node node = graphService.getGraph().getNodes().get(id);
+            if (node == null) {
+                node = loadNodeFromCsv(id);
+                if (node != null) {
+                    graphService.addNode(node);
+                }
+            }
+            if (node != null) {
+                route.add(node);
+            }
         }
-        return isComplete(route, savedRoute) ? route : new ArrayList<>();
+        return route;
     }
 
-    private void appendNode(List<Node> route, Integer nodeId) {
-        Node node = graphService.getGraph().getNodes().get(nodeId);
-        if (node != null) {
-            route.add(node);
-        }
-    }
-
-    private boolean isComplete(List<Node> route, SavedRoute savedRoute) {
-        return route.size() == savedRoute.getNodeIds().size();
+    private Node loadNodeFromCsv(int targetId) {
+        try {
+            File f = activeFolder != null ? new File(activeFolder, "nodes.csv") : new File("src/main/resources/" + configService.getString("graph.nodesCsv"));
+            if (!f.exists()) f = new File(configService.getString("graph.nodesCsv"));
+            for (String l : Files.readAllLines(f.toPath())) {
+                String[] p = l.split(",");
+                if (p.length >= 4 && !p[0].equals("id") && Integer.parseInt(p[0].trim()) == targetId)
+                    return new Node(targetId, p[3].trim(), Double.parseDouble(p[1].trim()), Double.parseDouble(p[2].trim()));
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     @Override
@@ -355,7 +365,7 @@ public class MapModelServiceImpl implements MapModelService {
         graphService.clearGraph();
         prev.getNodes().values().forEach(graphService::addNode);
         prev.getEdges().forEach(graphService::addEdge);
-        return InteractionResult.message("Acción deshecha");
+        return InteractionResult.message("Action undone");
     }
 
     @Override
