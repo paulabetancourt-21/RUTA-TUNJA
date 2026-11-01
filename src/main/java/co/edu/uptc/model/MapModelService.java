@@ -22,4 +22,6 @@ public interface MapModelService {
     List<SavedRoute> getSavedRoutes();
     String clearRoute();
     GraphLoadResult loadExternalGraph(File folder);
+    boolean saveGraphToFolder(File folder);
+    boolean saveGraph();
 }

@@ -10,9 +10,11 @@ import co.edu.uptc.util.GeoUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class MapModelServiceImpl implements MapModelService {
 
@@ -27,6 +29,7 @@ public class MapModelServiceImpl implements MapModelService {
     private Node pendingNode;
     private List<Node> currentRoute = new ArrayList<>();
     private double currentDistanceKm;
+    private File activeFolder = null;
 
     public MapModelServiceImpl(ConfigService configService, LanguageService languageService) {
         this.configService = configService;
@@ -292,12 +295,38 @@ public class MapModelServiceImpl implements MapModelService {
     @Override
     public GraphLoadResult loadExternalGraph(File folder) {
         try {
+            this.activeFolder = folder;
             graphService.clearGraph();
             csvLoader.loadNodes(new File(folder, "nodes.csv").getAbsolutePath());
             csvLoader.loadEdges(new File(folder, "edges.csv").getAbsolutePath());
             return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.ready"));
-        } catch (Exception exception) {
-            return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.graphLoadError"));
-        }
+        } catch (Exception e) { return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.graphLoadError")); }
     }
+
+    @Override
+    public boolean saveGraphToFolder(File folder) {
+        try {
+            List<String> n = new ArrayList<>(List.of("id,lat,lon,name"));
+            graphService.getGraph().getNodes().values().forEach(nd -> n.add(nd.getId()+","+nd.getLat()+","+nd.getLon()+","+nd.getName()));
+            Files.write(new File(folder, "nodes.csv").toPath(), n);
+            List<String> e = new ArrayList<>(List.of("fromId,toId,oneWay"));
+            graphService.getGraph().getEdges().forEach(ed -> e.add(ed.getSource().getId()+","+ed.getDestination().getId()+","+ed.isOneWay()));
+            Files.write(new File(folder, "edges.csv").toPath(), e);
+            return true;
+        } catch (Exception ex) { return false; }
+    }
+
+    @Override
+    public boolean saveGraph() {
+        try {
+            var f = activeFolder != null ? activeFolder : new File("src/main/resources/csv");
+            var n = graphService.getGraph().getNodes().values().stream().map(x -> x.getId()+","+x.getLat()+","+x.getLon()+","+x.getName()).toList();
+            var e = graphService.getGraph().getEdges().stream().map(x -> x.getSource().getId()+","+x.getDestination().getId()+","+x.isOneWay()).toList();
+            Files.write(new File(f, "nodes.csv").toPath(), Stream.concat(Stream.of("id,lat,lon,name"), n.stream()).toList());
+            Files.write(new File(f, "edges.csv").toPath(), Stream.concat(Stream.of("fromId,toId,oneWay"), e.stream()).toList());
+            return true;
+        } catch (Exception ex) { return false; }
+    }
+
+    
 }

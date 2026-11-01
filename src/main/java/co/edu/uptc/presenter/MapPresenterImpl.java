@@ -112,7 +112,11 @@ public class MapPresenterImpl implements MapPresenter {
 
     @Override
     public void saveGraph() {
-        view.showGraphSaved();
+        if (model.saveGraph()) {
+            view.showGraphSaved();
+        } else {
+            view.updateStatusMessage("Error al guardar");
+        }
     }
 
     @Override
