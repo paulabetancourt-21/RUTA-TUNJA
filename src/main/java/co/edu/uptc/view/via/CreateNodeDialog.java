@@ -15,16 +15,16 @@ import java.awt.GridLayout;
 
 public class CreateNodeDialog extends JDialog {
 
-    private JTextField latField;
-    private JTextField lonField;
+    private JTextField latitudeField;
+    private JTextField longitudeField;
     private boolean confirmed;
 
-    public CreateNodeDialog(JFrame parent, LanguageService languageService, double lat, double lon) {
-        super(parent, languageService.getText("menu.createNode"), true);
+    public CreateNodeDialog(JFrame parent, LanguageService languageService) {
+        super(parent, languageService.getText("dialog.createNode.title"), true);
         initDialog();
-        initFields(lat, lon);
-        add(createFormPanel(), BorderLayout.CENTER);
-        add(createButtonPanel(), BorderLayout.SOUTH);
+        initFields();
+        add(createFormPanel(languageService), BorderLayout.CENTER);
+        add(createButtonPanel(languageService), BorderLayout.SOUTH);
         pack();
         setLocationRelativeTo(parent);
     }
@@ -34,33 +34,47 @@ public class CreateNodeDialog extends JDialog {
         ((JPanel) getContentPane()).setBorder(new EmptyBorder(14, 18, 14, 18));
     }
 
-    private void initFields(double lat, double lon) {
-        latField = new JTextField(String.format("%.6f", lat), 15);
-        latField.setEnabled(false);
-        lonField = new JTextField(String.format("%.6f", lon), 15);
-        lonField.setEnabled(false);
+    private void initFields() {
+        latitudeField = createReadOnlyField();
+        longitudeField = createReadOnlyField();
     }
 
-    private JPanel createFormPanel() {
+    private JTextField createReadOnlyField() {
+        JTextField field = new JTextField(15);
+        field.setEnabled(false);
+        return field;
+    }
+
+    private JPanel createFormPanel(LanguageService languageService) {
         JPanel panel = new JPanel(new GridLayout(5, 1, 6, 6));
-        panel.add(new JLabel("Latitud:"));
-        panel.add(latField);
-        panel.add(new JLabel("Longitud:"));
-        panel.add(lonField);
-        panel.add(new JLabel("Las coordenadas se llenan con el clic en el mapa."));
+        panel.add(new JLabel(languageService.getText("dialog.createNode.latitude") + ":"));
+        panel.add(latitudeField);
+        panel.add(new JLabel(languageService.getText("dialog.createNode.longitude") + ":"));
+        panel.add(longitudeField);
+        panel.add(new JLabel(languageService.getText("dialog.createNode.hint")));
         return panel;
     }
 
-    private JPanel createButtonPanel() {
+    private JPanel createButtonPanel(LanguageService languageService) {
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-        JButton saveBtn = new JButton("Guardar");
-        JButton cancelBtn = new JButton("Cancelar");
-        saveBtn.addActionListener(e -> { confirmed = true; dispose(); });
-        cancelBtn.addActionListener(e -> { confirmed = false; dispose(); });
-        panel.add(saveBtn);
-        panel.add(cancelBtn);
+        panel.add(createButton(languageService.getText("common.save"), true));
+        panel.add(createButton(languageService.getText("common.cancel"), false));
         return panel;
+    }
+
+    private JButton createButton(String text, boolean value) {
+        JButton button = new JButton(text);
+        button.addActionListener(event -> {
+            confirmed = value;
+            dispose();
+        });
+        return button;
+    }
+
+    public void setCoordinates(double latitude, double longitude) {
+        latitudeField.setText(String.format("%.6f", latitude));
+        longitudeField.setText(String.format("%.6f", longitude));
     }
 
     public boolean isConfirmed() {

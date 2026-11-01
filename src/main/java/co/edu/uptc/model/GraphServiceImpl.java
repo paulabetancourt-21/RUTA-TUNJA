@@ -19,4 +19,19 @@ public class GraphServiceImpl implements GraphService {
         nodes.forEach(graph::addNode);
         edges.forEach(graph::addEdge);
     }
+
+    @Override
+    public void addNode(Node node) {
+        graph.addNode(node);
+    }
+
+    @Override
+    public void addEdge(Edge edge) {
+        graph.addEdge(edge);
+    }
+
+    @Override
+    public int nextNodeId() {
+        return graph.getNodes().keySet().stream().mapToInt(Integer::intValue).max().orElse(0) + 1;
+    }
 }

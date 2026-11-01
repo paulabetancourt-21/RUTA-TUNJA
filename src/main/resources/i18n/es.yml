@@ -1,22 +1,134 @@
+app:
+  title: "Mapa Interactivo Tunja"
+
+common:
+  save: "Guardar"
+  cancel: "Cancelar"
+  accept: "Aceptar"
+  calculate: "Calcular"
+
 menu:
-  via: Vía
-  route: Ruta
-  preferences: Preferencias
-  help: Ayuda
-  createNode: Crear nuevo nodo
-  createEdge: Crear nueva arista
-  calculateRoute: Calcular ruta
-  saveRoute: Guardar ruta
-  clearRoute: Limpiar ruta
+  via: "Vía"
+  route: "Ruta"
+  options: "Opciones"
+  help: "Ayuda"
+  createNode: "Crear nuevo nodo"
+  createEdge: "Crear nueva arista"
+  calculateRoute: "Calcular ruta"
+  saveRoute: "Guardar ruta"
+  clearRoute: "Limpiar ruta"
+  newGraph: "Nuevo grafo"
+  open: "Abrir..."
+  save: "Guardar"
+  undo: "Volver"
+  exit: "Salir"
+  zoom: "Zoom"
+  zoomIn: "Acercar"
+  zoomOut: "Alejar"
+  originalSize: "Tamaño original"
+  savedRoutes: "Rutas guardadas"
+  noSavedRoutes: "No hay rutas guardadas"
+  savedRouteItem: "%s  (%.2f km)"
+  configuration: "Configuración"
+  language: "Idioma"
+  spanish: "Español"
+  english: "English"
+  french: "Français"
+  loadLanguage: "Cargar idioma..."
+  howItWorks: "¿Cómo funciona?"
+  about: "Acerca de..."
 
 status:
-  ready: Listo
-  lat: Lat
-  lon: Lon
-  zoom: Zoom
+  ready: "Listo. Usa los menús para construir el grafo o calcular una ruta."
+  lat: "Lat"
+  lon: "Lon"
+  zoom: "Zoom"
+  routeCleared: "Ruta limpiada."
+  zoomChanged: "Zoom %d%%"
+  languageChanged: "Idioma actualizado."
+  newGraph: "Nuevo grafo iniciado."
+  graphSaved: "Grafo guardado."
+  undo: "Última acción deshecha."
+  configurationUpdated: "Configuración visual actualizada."
+  clickNodeHint: "Haz clic en el mapa donde va el nodo. (Esc para cancelar)"
+  clickOriginNode: "Haz clic en el nodo de origen. (Esc para cancelar)"
+  clickDestinationNode: "Haz clic en el nodo de destino. (Esc para cancelar)"
+  nodeCreated: "Nodo creado."
+  edgeCreated: "Arista creada."
+  routeCalculated: "Ruta más corta: %s"
+  routeSummary: "%s · %.2f km"
+  routeSaved: "Ruta guardada."
+  noRouteToSave: "Primero calcula una ruta para poder guardarla."
+  savedRouteUnavailable: "La ruta guardada ya no coincide con el grafo actual."
+  invalidNode: "Haz clic sobre un nodo válido."
+  graphLoadError: "No se pudo cargar el grafo."
+  actionCancelled: "Acción cancelada."
 
 message:
-  samePoint: El origen y el destino son el mismo punto
-  noRoute: No existe ruta entre el origen y el destino
-  selectOrigin: Seleccione el origen
-  selectDestination: Seleccione el destino
+  samePoint: "El origen y el destino son el mismo punto"
+  noRoute: "No existe ruta entre el origen y el destino"
+  selectOrigin: "Seleccione el origen"
+  selectDestination: "Seleccione el destino"
+  confirmNewGraph: "¿Desea crear un nuevo grafo? Los cambios no guardados se perderán."
+  newGraphTitle: "Nuevo grafo"
+  graphSavedTitle: "Guardar grafo"
+  graphSavedMessage: "Grafo guardado exitosamente en nodes.csv y edges.csv."
+
+dialog:
+  createNode:
+    title: "Crear nuevo nodo"
+    latitude: "Latitud"
+    longitude: "Longitud"
+    hint: "Las coordenadas se llenan con el clic en el mapa."
+  createEdge:
+    title: "Crear nueva arista"
+    nodeA: "Nodo A"
+    nodeB: "Nodo B"
+    distance: "Distancia"
+    direction: "Sentido"
+    twoWay: "Doble sentido"
+    oneWay: "Solo un sentido"
+  calculateRoute:
+    title: "Calcular ruta"
+    origin: "Origen seleccionado"
+    destination: "Destino seleccionado"
+    hint: "La ruta calcula el camino vehicular más corto."
+  saveRoute:
+    title: "Guardar ruta"
+    name: "Nombre de la ruta"
+    summary: "Resumen de la ruta"
+  config:
+    title: "Configuración visual"
+    nodeColor: "Color del nodo"
+    edgeColor: "Color de la arista"
+    routeColor: "Color de la ruta"
+    nodeSize: "Tamaño del nodo (px)"
+    strokeWidth: "Grosor de línea (px)"
+    chooseColor: "Elegir color..."
+  loadLanguage:
+    title: "Cargar idioma extra"
+    name: "Nombre del idioma"
+    fromFile: "Desde archivo..."
+    add: "Agregar"
+    filter: "Archivos YAML (*.yml)"
+  howItWorks:
+    title: "¿Cómo funciona?"
+    heading: "Pasos para construir el grafo y calcular rutas"
+    step1: "1. Vía > Crear nuevo nodo: Haz clic en el mapa para ubicar una esquina."
+    step2: "2. Vía > Crear nueva arista: Selecciona origen y destino para conectar vías."
+    step3: "3. Ruta > Calcular ruta: Marca origen y destino para hallar la vía más corta."
+    step4: "4. Presiona Esc en cualquier momento para cancelar la acción en curso."
+  about:
+    title: "Acerca de..."
+    appName: "Mapa Interactivo Tunja"
+    version: "Versión 1.0.0 (Swing MVP)"
+    author: "Paula Andrea Betancourt Matamoros"
+    university: "Universidad Pedagógica y Tecnológica de Colombia"
+    faculty: "Sistemas e Informática - 2026"
+  openGraph:
+    title: "Abrir grafo"
+    filter: "Grafos (*.csv)"
+
+map:
+  node: "Nodo"
+  routeSeparator: " → "

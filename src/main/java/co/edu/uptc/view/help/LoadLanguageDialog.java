@@ -1,5 +1,7 @@
 package co.edu.uptc.view.help;
 
+import co.edu.uptc.i18n.LanguageService;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
@@ -15,50 +17,55 @@ import java.awt.BorderLayout;
 
 public class LoadLanguageDialog extends JDialog {
 
-    private JTextField langNameField;
+    private final LanguageService languageService;
+    private JTextField languageNameField;
     private JTextArea yamlArea;
 
-    public LoadLanguageDialog(JFrame parent) {
-        super(parent, "Cargar Idioma Extra", true);
+    public LoadLanguageDialog(JFrame parent, LanguageService languageService) {
+        super(parent, languageService.getText("dialog.loadLanguage.title"), true);
+        this.languageService = languageService;
         setLayout(new BorderLayout(10, 10));
         ((JPanel) getContentPane()).setBorder(new EmptyBorder(14, 18, 14, 18));
-        
-        JPanel topPanel = new JPanel(new BorderLayout(6, 6));
-        topPanel.add(new JLabel("Nombre del idioma:"), BorderLayout.NORTH);
-        langNameField = new JTextField(15);
-        topPanel.add(langNameField, BorderLayout.SOUTH);
-        
-        yamlArea = new JTextArea(8, 25);
-        JScrollPane scrollPane = new JScrollPane(yamlArea);
-        
-        add(topPanel, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(createNamePanel(), BorderLayout.NORTH);
+        add(createYamlPanel(), BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
         pack();
         setLocationRelativeTo(parent);
     }
 
+    private JPanel createNamePanel() {
+        JPanel panel = new JPanel(new BorderLayout(6, 6));
+        panel.add(new JLabel(languageService.getText("dialog.loadLanguage.name") + ":"), BorderLayout.NORTH);
+        languageNameField = new JTextField(15);
+        panel.add(languageNameField, BorderLayout.SOUTH);
+        return panel;
+    }
+
+    private JScrollPane createYamlPanel() {
+        yamlArea = new JTextArea(8, 25);
+        return new JScrollPane(yamlArea);
+    }
+
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel();
-        JButton loadFileBtn = new JButton("Desde archivo...");
-        JButton addBtn = new JButton("Agregar");
-        JButton cancelBtn = new JButton("Cancelar");
-        
-        loadFileBtn.addActionListener(e -> selectFile());
-        addBtn.addActionListener(e -> dispose());
-        cancelBtn.addActionListener(e -> dispose());
-        
-        panel.add(loadFileBtn);
-        panel.add(addBtn);
-        panel.add(cancelBtn);
+        panel.add(createButton(languageService.getText("dialog.loadLanguage.fromFile"), e -> selectFile()));
+        panel.add(createButton(languageService.getText("dialog.loadLanguage.add"), e -> dispose()));
+        panel.add(createButton(languageService.getText("common.cancel"), e -> dispose()));
         return panel;
+    }
+
+    private JButton createButton(String text, java.awt.event.ActionListener listener) {
+        JButton button = new JButton(text);
+        button.addActionListener(listener);
+        return button;
     }
 
     private void selectFile() {
         JFileChooser chooser = new JFileChooser();
-        chooser.setFileFilter(new FileNameExtensionFilter("Archivos YAML (*.yml)", "yml"));
+        chooser.setFileFilter(new FileNameExtensionFilter(
+                languageService.getText("dialog.loadLanguage.filter"), "yml"));
         if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-            langNameField.setText(chooser.getSelectedFile().getName());
+            languageNameField.setText(chooser.getSelectedFile().getName());
         }
     }
 }

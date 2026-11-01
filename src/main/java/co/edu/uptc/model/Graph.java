@@ -4,35 +4,51 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import lombok.Getter;
 
 @Getter
 public class Graph {
-    private Map<Integer, Node> nodes;
-    private Map<Integer, List<Edge>> adjacencyList;
+    private final Map<Integer, Node> nodes;
+    private final Map<Integer, List<Edge>> adjacencyList;
+    private final List<Edge> edges;
 
     public Graph() {
         this.nodes = new HashMap<>();
         this.adjacencyList = new HashMap<>();
+        this.edges = new ArrayList<>();
     }
 
     public void addNode(Node node) {
+        if (node == null) {
+            return;
+        }
         nodes.putIfAbsent(node.getId(), node);
         adjacencyList.putIfAbsent(node.getId(), new ArrayList<>());
     }
 
     public void addEdge(Edge edge) {
-        int sourceId = edge.getSource().getId();
-        adjacencyList.get(sourceId).add(edge);
-        
-        if (!edge.isOneWay()) {
-            addReverseEdge(edge);
+        if (!isValidEdge(edge)) {
+            return;
         }
+        addDirectedEdge(edge.getSource(), edge);
+        edges.add(edge);
+        addReverseIfNeeded(edge);
     }
-    
-    private void addReverseEdge(Edge edge) {
+
+    private boolean isValidEdge(Edge edge) {
+        return edge != null && edge.getSource() != null && edge.getDestination() != null;
+    }
+
+    private void addDirectedEdge(Node source, Edge edge) {
+        adjacencyList.computeIfAbsent(source.getId(), id -> new ArrayList<>()).add(edge);
+    }
+
+    private void addReverseIfNeeded(Edge edge) {
+        if (edge.isOneWay()) {
+            return;
+        }
         Edge reverse = new Edge(edge.getDestination(), edge.getSource(), false, edge.getWeight());
-        adjacencyList.get(edge.getDestination().getId()).add(reverse);
+        addDirectedEdge(edge.getDestination(), reverse);
     }
 }
-

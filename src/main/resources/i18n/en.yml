@@ -1,22 +1,134 @@
+app:
+  title: "Interactive Map of Tunja"
+
+common:
+  save: "Save"
+  cancel: "Cancel"
+  accept: "Accept"
+  calculate: "Calculate"
+
 menu:
-  via: Via
-  route: Route
-  preferences: Preferences
-  help: Help
-  createNode: Create new node
-  createEdge: Create new edge
-  calculateRoute: Calculate route
-  saveRoute: Save route
-  clearRoute: Clear route
+  via: "Via"
+  route: "Route"
+  options: "Options"
+  help: "Help"
+  createNode: "Create new node"
+  createEdge: "Create new edge"
+  calculateRoute: "Calculate route"
+  saveRoute: "Save route"
+  clearRoute: "Clear route"
+  newGraph: "New graph"
+  open: "Open..."
+  save: "Save"
+  undo: "Undo"
+  exit: "Exit"
+  zoom: "Zoom"
+  zoomIn: "Zoom in"
+  zoomOut: "Zoom out"
+  originalSize: "Original size"
+  savedRoutes: "Saved routes"
+  noSavedRoutes: "No saved routes"
+  savedRouteItem: "%s  (%.2f km)"
+  configuration: "Configuration"
+  language: "Language"
+  spanish: "Español"
+  english: "English"
+  french: "Français"
+  loadLanguage: "Load language..."
+  howItWorks: "How does it work?"
+  about: "About..."
 
 status:
-  ready: Ready
-  lat: Lat
-  lon: Lon
-  zoom: Zoom
+  ready: "Ready. Use the menus to build the graph or calculate a route."
+  lat: "Lat"
+  lon: "Lon"
+  zoom: "Zoom"
+  routeCleared: "Route cleared."
+  zoomChanged: "Zoom %d%%"
+  languageChanged: "Language updated."
+  newGraph: "New graph started."
+  graphSaved: "Graph saved."
+  undo: "Last action undone."
+  configurationUpdated: "Visual configuration updated."
+  clickNodeHint: "Click on the map where the node goes. (Esc to cancel)"
+  clickOriginNode: "Click the origin node. (Esc to cancel)"
+  clickDestinationNode: "Click the destination node. (Esc to cancel)"
+  nodeCreated: "Node created."
+  edgeCreated: "Edge created."
+  routeCalculated: "Shortest route: %s"
+  routeSummary: "%s · %.2f km"
+  routeSaved: "Route saved."
+  noRouteToSave: "Calculate a route first so it can be saved."
+  savedRouteUnavailable: "The saved route no longer matches the current graph."
+  invalidNode: "Click on a valid node."
+  graphLoadError: "The graph could not be loaded."
+  actionCancelled: "Action cancelled."
 
 message:
-  samePoint: Origin and destination are the same point
-  noRoute: No route exists between origin and destination
-  selectOrigin: Select origin
-  selectDestination: Select destination
+  samePoint: "Origin and destination are the same point"
+  noRoute: "No route exists between origin and destination"
+  selectOrigin: "Select origin"
+  selectDestination: "Select destination"
+  confirmNewGraph: "Do you want to create a new graph? Unsaved changes will be lost."
+  newGraphTitle: "New graph"
+  graphSavedTitle: "Save graph"
+  graphSavedMessage: "Graph saved successfully to nodes.csv and edges.csv."
+
+dialog:
+  createNode:
+    title: "Create new node"
+    latitude: "Latitude"
+    longitude: "Longitude"
+    hint: "Coordinates are filled by clicking on the map."
+  createEdge:
+    title: "Create new edge"
+    nodeA: "Node A"
+    nodeB: "Node B"
+    distance: "Distance"
+    direction: "Direction"
+    twoWay: "Two-way"
+    oneWay: "One-way"
+  calculateRoute:
+    title: "Calculate route"
+    origin: "Selected origin"
+    destination: "Selected destination"
+    hint: "The route calculates the shortest vehicular path."
+  saveRoute:
+    title: "Save route"
+    name: "Route name"
+    summary: "Route summary"
+  config:
+    title: "Visual configuration"
+    nodeColor: "Node color"
+    edgeColor: "Edge color"
+    routeColor: "Route color"
+    nodeSize: "Node size (px)"
+    strokeWidth: "Line thickness (px)"
+    chooseColor: "Choose color..."
+  loadLanguage:
+    title: "Load extra language"
+    name: "Language name"
+    fromFile: "From file..."
+    add: "Add"
+    filter: "YAML files (*.yml)"
+  howItWorks:
+    title: "How does it work?"
+    heading: "Steps to build the graph and calculate routes"
+    step1: "1. Via > Create new node: Click on the map to place a corner."
+    step2: "2. Via > Create new edge: Select origin and destination to connect roads."
+    step3: "3. Route > Calculate route: Mark origin and destination to find the shortest path."
+    step4: "4. Press Esc at any time to cancel the current action."
+  about:
+    title: "About..."
+    appName: "Interactive Map of Tunja"
+    version: "Version 1.0.0 (Swing MVP)"
+    author: "Paula Andrea Betancourt Matamoros"
+    university: "Universidad Pedagógica y Tecnológica de Colombia"
+    faculty: "Systems and Computing - 2026"
+  openGraph:
+    title: "Open graph"
+    filter: "Graphs (*.csv)"
+
+map:
+  node: "Node"
+  routeSeparator: " → "

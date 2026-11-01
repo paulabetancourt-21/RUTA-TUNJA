@@ -20,11 +20,11 @@ public class SaveRouteDialog extends JDialog {
     private boolean confirmed;
 
     public SaveRouteDialog(JFrame parent, LanguageService languageService, String routeSummary) {
-        super(parent, languageService.getText("menu.saveRoute"), true);
+        super(parent, languageService.getText("dialog.saveRoute.title"), true);
         initDialog();
         initFields(routeSummary);
-        add(createFormPanel(), BorderLayout.CENTER);
-        add(createButtonPanel(), BorderLayout.SOUTH);
+        add(createFormPanel(languageService), BorderLayout.CENTER);
+        add(createButtonPanel(languageService), BorderLayout.SOUTH);
         pack();
         setLocationRelativeTo(parent);
     }
@@ -40,32 +40,35 @@ public class SaveRouteDialog extends JDialog {
         routeInfoField.setEnabled(false);
     }
 
-    private JPanel createFormPanel() {
-        JPanel panel = new JPanel(new GridLayout(5, 1, 6, 6));
-        panel.add(new JLabel("Nombre de la ruta:"));
+    private JPanel createFormPanel(LanguageService languageService) {
+        JPanel panel = new JPanel(new GridLayout(4, 1, 6, 6));
+        panel.add(new JLabel(languageService.getText("dialog.saveRoute.name") + ":"));
         panel.add(routeNameField);
-        panel.add(new JLabel("Resumen de la ruta:"));
+        panel.add(new JLabel(languageService.getText("dialog.saveRoute.summary") + ":"));
         panel.add(routeInfoField);
         return panel;
     }
 
-    private JPanel createButtonPanel() {
+    private JPanel createButtonPanel(LanguageService languageService) {
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        JButton saveBtn = new JButton("Guardar");
-        JButton cancelBtn = new JButton("Cancelar");
-        
-        saveBtn.addActionListener(e -> {
-            if (!routeNameField.getText().trim().isEmpty()) {
-                confirmed = true;
-                dispose();
-            }
-        });
-        cancelBtn.addActionListener(e -> { confirmed = false; dispose(); });
-        
-        panel.add(saveBtn);
-        panel.add(cancelBtn);
+        panel.add(createButton(languageService.getText("common.save"), true));
+        panel.add(createButton(languageService.getText("common.cancel"), false));
         return panel;
+    }
+
+    private JButton createButton(String text, boolean value) {
+        JButton button = new JButton(text);
+        button.addActionListener(event -> confirm(value));
+        return button;
+    }
+
+    private void confirm(boolean value) {
+        if (value && routeNameField.getText().trim().isEmpty()) {
+            return;
+        }
+        confirmed = value;
+        dispose();
     }
 
     public boolean isConfirmed() {

@@ -1,5 +1,7 @@
 package co.edu.uptc.view.help;
 
+import co.edu.uptc.i18n.LanguageService;
+
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -12,11 +14,11 @@ import java.awt.GridLayout;
 
 public class AboutDialog extends JDialog {
 
-    public AboutDialog(JFrame parent) {
-        super(parent, "Acerca de...", true);
+    public AboutDialog(JFrame parent, LanguageService languageService) {
+        super(parent, languageService.getText("dialog.about.title"), true);
         initDialog();
-        add(createContentPanel(), BorderLayout.CENTER);
-        add(createButtonPanel(), BorderLayout.SOUTH);
+        add(createContentPanel(languageService), BorderLayout.CENTER);
+        add(createButtonPanel(languageService), BorderLayout.SOUTH);
         pack();
         setLocationRelativeTo(parent);
     }
@@ -26,23 +28,31 @@ public class AboutDialog extends JDialog {
         ((JPanel) getContentPane()).setBorder(new EmptyBorder(16, 20, 16, 20));
     }
 
-    private JPanel createContentPanel() {
+    private JPanel createContentPanel(LanguageService languageService) {
         JPanel panel = new JPanel(new GridLayout(5, 1, 4, 4));
-        JLabel title = new JLabel("Mapa Interactivo Tunja", JLabel.CENTER);
-        title.setFont(new Font("SansSerif", Font.BOLD, 15));
-        panel.add(title);
-        panel.add(new JLabel("Versión 1.0.0 (Swing MVP)", JLabel.CENTER));
-        panel.add(new JLabel("Paula Andrea Betancourt Matamoros", JLabel.CENTER));
-        panel.add(new JLabel("Universidad Pedagógica y Tecnológica de Colombia", JLabel.CENTER));
-        panel.add(new JLabel("Sistemas e Informática - 2026", JLabel.CENTER));
+        panel.add(createTitleLabel(languageService.getText("dialog.about.appName")));
+        panel.add(createCenterLabel(languageService.getText("dialog.about.version")));
+        panel.add(createCenterLabel(languageService.getText("dialog.about.author")));
+        panel.add(createCenterLabel(languageService.getText("dialog.about.university")));
+        panel.add(createCenterLabel(languageService.getText("dialog.about.faculty")));
         return panel;
     }
 
-    private JPanel createButtonPanel() {
+    private JLabel createTitleLabel(String text) {
+        JLabel label = new JLabel(text, JLabel.CENTER);
+        label.setFont(new Font("SansSerif", Font.BOLD, 15));
+        return label;
+    }
+
+    private JLabel createCenterLabel(String text) {
+        return new JLabel(text, JLabel.CENTER);
+    }
+
+    private JPanel createButtonPanel(LanguageService languageService) {
         JPanel panel = new JPanel();
-        JButton okBtn = new JButton("Aceptar");
-        okBtn.addActionListener(e -> dispose());
-        panel.add(okBtn);
+        JButton acceptButton = new JButton(languageService.getText("common.accept"));
+        acceptButton.addActionListener(event -> dispose());
+        panel.add(acceptButton);
         return panel;
     }
 }

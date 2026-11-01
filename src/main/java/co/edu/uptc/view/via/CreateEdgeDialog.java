@@ -21,13 +21,15 @@ public class CreateEdgeDialog extends JDialog {
     private JTextField distanceField;
     private JComboBox<String> directionCombo;
     private boolean confirmed;
+    private final String oneWayText;
 
-    public CreateEdgeDialog(JFrame parent, LanguageService languageService, String nodeA, String nodeB, double distanceKm) {
-        super(parent, languageService.getText("menu.createEdge"), true);
+    public CreateEdgeDialog(JFrame parent, LanguageService languageService) {
+        super(parent, languageService.getText("dialog.createEdge.title"), true);
+        this.oneWayText = languageService.getText("dialog.createEdge.oneWay");
         initDialog();
-        initFields(nodeA, nodeB, distanceKm);
-        add(createFormPanel(), BorderLayout.CENTER);
-        add(createButtonPanel(), BorderLayout.SOUTH);
+        initFields(languageService);
+        add(createFormPanel(languageService), BorderLayout.CENTER);
+        add(createButtonPanel(languageService), BorderLayout.SOUTH);
         pack();
         setLocationRelativeTo(parent);
     }
@@ -37,42 +39,56 @@ public class CreateEdgeDialog extends JDialog {
         ((JPanel) getContentPane()).setBorder(new EmptyBorder(14, 18, 14, 18));
     }
 
-    private void initFields(String nodeA, String nodeB, double distanceKm) {
-        nodeAField = createReadOnlyField(nodeA);
-        nodeBField = createReadOnlyField(nodeB);
-        distanceField = createReadOnlyField(String.format("%.2f m", distanceKm * 1000));
-        directionCombo = new JComboBox<>(new String[]{"Doble sentido", "Solo un sentido"});
+    private void initFields(LanguageService languageService) {
+        nodeAField = createReadOnlyField();
+        nodeBField = createReadOnlyField();
+        distanceField = createReadOnlyField();
+        directionCombo = new JComboBox<>(new String[]{
+                languageService.getText("dialog.createEdge.twoWay"),
+                oneWayText
+        });
     }
 
-    private JTextField createReadOnlyField(String text) {
-        JTextField field = new JTextField(text, 15);
+    private JTextField createReadOnlyField() {
+        JTextField field = new JTextField(15);
         field.setEnabled(false);
         return field;
     }
 
-    private JPanel createFormPanel() {
+    private JPanel createFormPanel(LanguageService languageService) {
         JPanel panel = new JPanel(new GridLayout(8, 1, 4, 4));
-        panel.add(new JLabel("Nodo A:"));
+        panel.add(new JLabel(languageService.getText("dialog.createEdge.nodeA") + ":"));
         panel.add(nodeAField);
-        panel.add(new JLabel("Nodo B:"));
+        panel.add(new JLabel(languageService.getText("dialog.createEdge.nodeB") + ":"));
         panel.add(nodeBField);
-        panel.add(new JLabel("Distancia:"));
+        panel.add(new JLabel(languageService.getText("dialog.createEdge.distance") + ":"));
         panel.add(distanceField);
-        panel.add(new JLabel("Sentido:"));
+        panel.add(new JLabel(languageService.getText("dialog.createEdge.direction") + ":"));
         panel.add(directionCombo);
         return panel;
     }
 
-    private JPanel createButtonPanel() {
+    private JPanel createButtonPanel(LanguageService languageService) {
         JPanel panel = new JPanel();
         panel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-        JButton saveBtn = new JButton("Guardar");
-        JButton cancelBtn = new JButton("Cancelar");
-        saveBtn.addActionListener(e -> { confirmed = true; dispose(); });
-        cancelBtn.addActionListener(e -> { confirmed = false; dispose(); });
-        panel.add(saveBtn);
-        panel.add(cancelBtn);
+        panel.add(createButton(languageService.getText("common.save"), true));
+        panel.add(createButton(languageService.getText("common.cancel"), false));
         return panel;
+    }
+
+    private JButton createButton(String text, boolean value) {
+        JButton button = new JButton(text);
+        button.addActionListener(event -> {
+            confirmed = value;
+            dispose();
+        });
+        return button;
+    }
+
+    public void setEdgeData(String nodeA, String nodeB, double distanceKm) {
+        nodeAField.setText(nodeA);
+        nodeBField.setText(nodeB);
+        distanceField.setText(String.format("%.2f m", distanceKm * 1000));
     }
 
     public boolean isConfirmed() {
@@ -80,6 +96,6 @@ public class CreateEdgeDialog extends JDialog {
     }
 
     public boolean isOneWay() {
-        return "Solo un sentido".equals(directionCombo.getSelectedItem());
+        return oneWayText.equals(directionCombo.getSelectedItem());
     }
 }

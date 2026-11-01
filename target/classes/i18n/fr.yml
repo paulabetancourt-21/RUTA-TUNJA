@@ -1,22 +1,134 @@
+app:
+  title: "Carte interactive de Tunja"
+
+common:
+  save: "Enregistrer"
+  cancel: "Annuler"
+  accept: "Accepter"
+  calculate: "Calculer"
+
 menu:
-  via: Voie
-  route: Itinéraire
-  preferences: Préférences
-  help: Aide
-  createNode: Créer un nouveau nœud
-  createEdge: Créer une nouvelle arête
-  calculateRoute: Calculer l'itinéraire
-  saveRoute: Enregistrer l'itinéraire
-  clearRoute: Effacer l'itinéraire
+  via: "Voie"
+  route: "Itinéraire"
+  options: "Options"
+  help: "Aide"
+  createNode: "Créer un nouveau nœud"
+  createEdge: "Créer une nouvelle arête"
+  calculateRoute: "Calculer l'itinéraire"
+  saveRoute: "Enregistrer l'itinéraire"
+  clearRoute: "Effacer l'itinéraire"
+  newGraph: "Nouveau graphe"
+  open: "Ouvrir..."
+  save: "Enregistrer"
+  undo: "Annuler l'action"
+  exit: "Quitter"
+  zoom: "Zoom"
+  zoomIn: "Agrandir"
+  zoomOut: "Réduire"
+  originalSize: "Taille d'origine"
+  savedRoutes: "Itinéraires enregistrés"
+  noSavedRoutes: "Aucun itinéraire enregistré"
+  savedRouteItem: "%s  (%.2f km)"
+  configuration: "Configuration"
+  language: "Langue"
+  spanish: "Español"
+  english: "English"
+  french: "Français"
+  loadLanguage: "Charger une langue..."
+  howItWorks: "Comment ça marche ?"
+  about: "À propos..."
 
 status:
-  ready: Prêt
-  lat: Lat
-  lon: Lon
-  zoom: Zoom
+  ready: "Prêt. Utilisez les menus pour construire le graphe ou calculer un itinéraire."
+  lat: "Lat"
+  lon: "Lon"
+  zoom: "Zoom"
+  routeCleared: "Itinéraire effacé."
+  zoomChanged: "Zoom %d%%"
+  languageChanged: "Langue mise à jour."
+  newGraph: "Nouveau graphe démarré."
+  graphSaved: "Graphe enregistré."
+  undo: "Dernière action annulée."
+  configurationUpdated: "Configuration visuelle mise à jour."
+  clickNodeHint: "Cliquez sur la carte à l'endroit du nœud. (Échap pour annuler)"
+  clickOriginNode: "Cliquez sur le nœud d'origine. (Échap pour annuler)"
+  clickDestinationNode: "Cliquez sur le nœud de destination. (Échap pour annuler)"
+  nodeCreated: "Nœud créé."
+  edgeCreated: "Arête créée."
+  routeCalculated: "Itinéraire le plus court : %s"
+  routeSummary: "%s · %.2f km"
+  routeSaved: "Itinéraire enregistré."
+  noRouteToSave: "Calculez d'abord un itinéraire pour pouvoir l'enregistrer."
+  savedRouteUnavailable: "L'itinéraire enregistré ne correspond plus au graphe actuel."
+  invalidNode: "Cliquez sur un nœud valide."
+  graphLoadError: "Le graphe n'a pas pu être chargé."
+  actionCancelled: "Action annulée."
 
 message:
-  samePoint: L'origine et la destination sont identiques
-  noRoute: Il n'existe aucun itinéraire entre l'origine et la destination
-  selectOrigin: Sélectionner l'origine
-  selectDestination: Sélectionner la destination
+  samePoint: "L'origine et la destination sont identiques"
+  noRoute: "Il n'existe aucun itinéraire entre l'origine et la destination"
+  selectOrigin: "Sélectionner l'origine"
+  selectDestination: "Sélectionner la destination"
+  confirmNewGraph: "Voulez-vous créer un nouveau graphe ? Les modifications non enregistrées seront perdues."
+  newGraphTitle: "Nouveau graphe"
+  graphSavedTitle: "Enregistrer le graphe"
+  graphSavedMessage: "Graphe enregistré avec succès dans nodes.csv et edges.csv."
+
+dialog:
+  createNode:
+    title: "Créer un nouveau nœud"
+    latitude: "Latitude"
+    longitude: "Longitude"
+    hint: "Les coordonnées sont remplies par un clic sur la carte."
+  createEdge:
+    title: "Créer une nouvelle arête"
+    nodeA: "Nœud A"
+    nodeB: "Nœud B"
+    distance: "Distance"
+    direction: "Sens"
+    twoWay: "Double sens"
+    oneWay: "Sens unique"
+  calculateRoute:
+    title: "Calculer l'itinéraire"
+    origin: "Origine sélectionnée"
+    destination: "Destination sélectionnée"
+    hint: "L'itinéraire calcule le chemin véhiculaire le plus court."
+  saveRoute:
+    title: "Enregistrer l'itinéraire"
+    name: "Nom de l'itinéraire"
+    summary: "Résumé de l'itinéraire"
+  config:
+    title: "Configuration visuelle"
+    nodeColor: "Couleur du nœud"
+    edgeColor: "Couleur de l'arête"
+    routeColor: "Couleur de l'itinéraire"
+    nodeSize: "Taille du nœud (px)"
+    strokeWidth: "Épaisseur de ligne (px)"
+    chooseColor: "Choisir une couleur..."
+  loadLanguage:
+    title: "Charger une langue supplémentaire"
+    name: "Nom de la langue"
+    fromFile: "Depuis un fichier..."
+    add: "Ajouter"
+    filter: "Fichiers YAML (*.yml)"
+  howItWorks:
+    title: "Comment ça marche ?"
+    heading: "Étapes pour construire le graphe et calculer des itinéraires"
+    step1: "1. Voie > Créer un nouveau nœud : Cliquez sur la carte pour placer un coin."
+    step2: "2. Voie > Créer une nouvelle arête : Sélectionnez l'origine et la destination pour relier les voies."
+    step3: "3. Itinéraire > Calculer l'itinéraire : Marquez l'origine et la destination pour trouver le chemin le plus court."
+    step4: "4. Appuyez sur Échap à tout moment pour annuler l'action en cours."
+  about:
+    title: "À propos..."
+    appName: "Carte interactive de Tunja"
+    version: "Version 1.0.0 (Swing MVP)"
+    author: "Paula Andrea Betancourt Matamoros"
+    university: "Universidad Pedagógica y Tecnológica de Colombia"
+    faculty: "Systèmes et informatique - 2026"
+  openGraph:
+    title: "Ouvrir un graphe"
+    filter: "Graphes (*.csv)"
+
+map:
+  node: "Nœud"
+  routeSeparator: " → "
