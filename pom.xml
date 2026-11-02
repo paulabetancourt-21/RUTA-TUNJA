@@ -7,7 +7,7 @@
 
     <groupId>co.edu.uptc</groupId>
     <artifactId>proyecto-ruta-tunja</artifactId>
-    <version>1.0.0</version>
+    <version>2.0.0</version>
     <name>Proyecto Ruta Tunja</name>
     <description>Mapa interactivo de rutas de Tunja con algoritmo Dijkstra - Java Swing MVP</description>
 
