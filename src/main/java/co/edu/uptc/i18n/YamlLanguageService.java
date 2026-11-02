@@ -14,8 +14,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class YamlLanguageService extends AbstractYamlService implements LanguageService {
+
+    private static final Logger LOGGER = Logger.getLogger(YamlLanguageService.class.getName());
     private ConfigService configService;
     private String currentLanguage;
     private Map<String, Map<String, Object>> externalLanguages;
@@ -82,7 +86,14 @@ public class YamlLanguageService extends AbstractYamlService implements Language
 
     @Override
     public void setLanguage(String code) {
-        if (!isLanguageAvailable(code)) return;
+        if (!isLanguageAvailable(code)) {
+            logInvalidLanguage(code);
+            return;
+        }
+        applyLanguage(code);
+    }
+
+    private void applyLanguage(String code) {
         currentLanguage = code;
         if (externalLanguages.containsKey(code)) {
             dataMap = externalLanguages.get(code);
@@ -90,6 +101,10 @@ public class YamlLanguageService extends AbstractYamlService implements Language
             return;
         }
         resetAndLoad();
+    }
+
+    private void logInvalidLanguage(String code) {
+        LOGGER.warning("Idioma no disponible: " + code);
     }
 
     private void resetAndLoad() {
@@ -101,13 +116,21 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     @Override
     public boolean loadExternalLanguage(String languageCode, File file) {
         String code = normalizeCode(languageCode);
-        if (!validFile(file) || !validCode(code) || !storeFromFile(code, file)) return false;
+        if (!validFile(file) || !validCode(code) || !storeFromFile(code, file)) {
+            LOGGER.warning("Idioma externo inválido: " + code + " (" + file + ")");
+            return false;
+        }
         persist(file, code);
+        LOGGER.info("Idioma externo cargado: " + code + " desde " + file.getAbsolutePath());
         return true;
     }
 
     public boolean loadExternalLanguage(File file) {
-        return validFile(file) && loadExternalLanguage(extractCode(file), file);
+        if (!validFile(file)) {
+            LOGGER.warning("Archivo de idioma inválido: " + file);
+            return false;
+        }
+        return loadExternalLanguage(extractCode(file), file);
     }
 
     private String normalizeCode(String code) {
@@ -159,7 +182,9 @@ public class YamlLanguageService extends AbstractYamlService implements Language
         try {
             Path target = buildExternalPath(code);
             if (!isSameFile(source, target)) copyFile(source, target);
-        } catch (IOException ignored) {}
+        } catch (IOException exception) {
+            LOGGER.log(Level.SEVERE, "Error al copiar el idioma " + code + " a " + buildExternalPath(code), exception);
+        }
     }
 
     private Path buildExternalPath(String code) {

@@ -22,6 +22,9 @@ geoReference:
 graph:
   nodesCsv: csv/nodes.csv
   edgesCsv: csv/edges.csv
+  # Carpeta de trabajo: aquí se guarda el grafo actual.
+  # Nunca se sobrescriben los CSV por defecto de src/main/resources.
+  saveFolder: data/graph
 
 routes:
   savedFile: src/main/resources/data/saved-routes.csv
@@ -33,6 +36,7 @@ logs:
   directory: logs
   fileNamePattern: mapRouteTunja-yyyy-MM-dd.log
   rotationDays: 3
+  level: INFO
 
 i18n:
   defaultLanguage: es

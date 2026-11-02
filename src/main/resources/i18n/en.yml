@@ -74,10 +74,10 @@ message:
   noRoute: "No route exists between origin and destination"
   selectOrigin: "Select origin"
   selectDestination: "Select destination"
-  confirmNewGraph: "Do you want to create a new graph? Unsaved changes will be lost."
+  confirmNewGraph: "Do you want to clear the graph? The default nodes will return when you restart the application."
   newGraphTitle: "New graph"
   graphSavedTitle: "Save graph"
-  graphSavedMessage: "Graph saved successfully to nodes.csv and edges.csv."
+  graphSavedMessage: "Graph saved to the working folder. The default nodes were not modified."
 
 dialog:
   createNode:

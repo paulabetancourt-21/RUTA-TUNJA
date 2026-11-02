@@ -74,10 +74,10 @@ message:
   noRoute: "Il n'existe aucun itinéraire entre l'origine et la destination"
   selectOrigin: "Sélectionner l'origine"
   selectDestination: "Sélectionner la destination"
-  confirmNewGraph: "Voulez-vous créer un nouveau graphe ? Les modifications non enregistrées seront perdues."
+  confirmNewGraph: "Voulez-vous effacer le graphe ? Les nœuds par défaut reviendront au redémarrage de l'application."
   newGraphTitle: "Nouveau graphe"
   graphSavedTitle: "Enregistrer le graphe"
-  graphSavedMessage: "Graphe enregistré avec succès dans nodes.csv et edges.csv."
+  graphSavedMessage: "Graphe enregistré dans le dossier de travail. Les nœuds par défaut n'ont pas été modifiés."
 
 dialog:
   createNode:

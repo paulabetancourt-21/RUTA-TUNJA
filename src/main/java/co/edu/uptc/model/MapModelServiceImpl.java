@@ -15,9 +15,11 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MapModelServiceImpl implements MapModelService {
+    private static final Logger LOGGER = Logger.getLogger(MapModelServiceImpl.class.getName());
     private final ConfigService configService;
     private final LanguageService languageService;
     private final GraphService graphService = new GraphServiceImpl();
@@ -39,27 +41,40 @@ public class MapModelServiceImpl implements MapModelService {
     }
 
     private Graph createGraphSnapshot() {
-        Graph current = graphService.getGraph();
         Graph snapshot = new Graph();
-        current.getNodes().forEach((id, node) -> snapshot.getNodes().put(id, new Node(node.getId(), node.getName(), node.getLat(), node.getLon())));
-        current.getEdges().forEach(edge -> {
-            Node src = snapshot.getNodes().get(edge.getSource().getId());
-            Node dst = snapshot.getNodes().get(edge.getDestination().getId());
-            if (src != null && dst != null) {
-                snapshot.getEdges().add(new Edge(src, dst, edge.isOneWay(), edge.getWeight()));
-            }
-        });
+        copyNodes(snapshot);
+        copyEdges(snapshot);
         return snapshot;
+    }
+
+    private void copyNodes(Graph snapshot) {
+        graphService.getGraph().getNodes().forEach((id, node) -> snapshot.getNodes().put(id, copyNode(node)));
+    }
+
+    private Node copyNode(Node node) {
+        return new Node(node.getId(), node.getName(), node.getLat(), node.getLon());
+    }
+
+    private void copyEdges(Graph snapshot) {
+        graphService.getGraph().getEdges().forEach(edge -> addSnapshotEdge(snapshot, edge));
+    }
+
+    private void addSnapshotEdge(Graph snapshot, Edge edge) {
+        Node source = snapshot.getNodes().get(edge.getSource().getId());
+        Node destination = snapshot.getNodes().get(edge.getDestination().getId());
+        if (source != null && destination != null) {
+            snapshot.getEdges().add(new Edge(source, destination, edge.isOneWay(), edge.getWeight()));
+        }
     }
 
     @Override
     public GraphLoadResult loadGraph() {
         try {
             loadCsvGraph();
+            logGraphLoaded();
             return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.ready"));
         } catch (IOException exception) {
-            String message = languageService.getText("status.graphLoadError");
-            return new GraphLoadResult(graphService.getGraph(), message);
+            return loadGraphFailure(exception);
         }
     }
 
@@ -68,13 +83,30 @@ public class MapModelServiceImpl implements MapModelService {
         csvLoader.loadEdges(configService.getString("graph.edgesCsv"));
     }
 
+    private void logGraphLoaded() {
+        Graph graph = graphService.getGraph();
+        LOGGER.info("Grafo cargado: " + graph.getNodes().size() + " nodos, " + graph.getEdges().size() + " aristas");
+    }
+
+    private GraphLoadResult loadGraphFailure(IOException exception) {
+        LOGGER.log(Level.SEVERE, "Error al cargar el grafo desde los archivos CSV", exception);
+        String message = languageService.getText("status.graphLoadError");
+        return new GraphLoadResult(graphService.getGraph(), message);
+    }
+
     @Override
     public GraphResetResult resetGraph() {
+        clearGraphState();
+        LOGGER.info("Grafo limpiado solo en memoria; los CSV por defecto no se modificaron");
+        return new GraphResetResult(graphService.getGraph(), languageService.getText("status.newGraph"));
+    }
+
+    private void clearGraphState() {
         history.clear();
         graphService.clearGraph();
         resetInteraction();
         clearRouteState();
-        return new GraphResetResult(graphService.getGraph(), languageService.getText("status.newGraph"));
+        activeFolder = null;
     }
 
     @Override
@@ -83,14 +115,17 @@ public class MapModelServiceImpl implements MapModelService {
         Node node = new Node(graphService.nextNodeId(), name, latitude, longitude);
         graphService.addNode(node);
         resetInteraction();
+        LOGGER.info("Nodo creado: id=" + node.getId() + ", nombre=" + node.getName());
         return languageService.getText("status.nodeCreated");
     }
 
     @Override
     public String createEdge(Node source, Node destination, boolean oneWay) {
         history.push(createGraphSnapshot());
-        graphService.addEdge(buildEdge(source, destination, oneWay));
+        Edge edge = buildEdge(source, destination, oneWay);
+        graphService.addEdge(edge);
         resetInteraction();
+        LOGGER.info("Arista creada: " + edge.getSource().getId() + " -> " + edge.getDestination().getId());
         return languageService.getText("status.edgeCreated");
     }
 
@@ -207,9 +242,11 @@ public class MapModelServiceImpl implements MapModelService {
         List<Node> route = dijkstraService.calculateShortestPath(origin, destination);
         resetInteraction();
         if (route.isEmpty()) {
+            LOGGER.warning("No se encontró ruta entre los nodos " + origin.getId() + " y " + destination.getId());
             return RouteResult.empty(languageService.getText("message.noRoute"));
         }
         rememberRoute(route);
+        LOGGER.info("Ruta calculada con " + route.size() + " nodos");
         return RouteResult.route(route, buildRouteMessage(route));
     }
 
@@ -217,9 +254,11 @@ public class MapModelServiceImpl implements MapModelService {
     public RouteResult resolveSavedRoute(SavedRoute savedRoute) {
         List<Node> route = toRouteNodes(savedRoute);
         if (route.size() < 2) {
+            LOGGER.warning("Ruta guardada no disponible: " + savedRoute.getName());
             return RouteResult.empty(languageService.getText("status.savedRouteUnavailable"));
         }
         rememberRoute(route);
+        LOGGER.info("Ruta guardada cargada: " + savedRoute.getName());
         return RouteResult.route(route, buildRouteMessage(route));
     }
 
@@ -258,32 +297,61 @@ public class MapModelServiceImpl implements MapModelService {
 
     private List<Node> toRouteNodes(SavedRoute savedRoute) {
         List<Node> route = new ArrayList<>();
-        for (Integer id : savedRoute.getNodeIds()) {
-            Node node = graphService.getGraph().getNodes().get(id);
-            if (node == null) {
-                node = loadNodeFromCsv(id);
-                if (node != null) {
-                    graphService.addNode(node);
-                }
-            }
-            if (node != null) {
-                route.add(node);
-            }
-        }
+        savedRoute.getNodeIds().forEach(id -> addRouteNode(route, id));
         return route;
+    }
+
+    private void addRouteNode(List<Node> route, Integer id) {
+        Node node = findOrLoadNode(id);
+        if (node != null) {
+            route.add(node);
+        }
+    }
+
+    private Node findOrLoadNode(Integer id) {
+        Node node = graphService.getGraph().getNodes().get(id);
+        return node != null ? node : loadAndRegisterNode(id);
+    }
+
+    private Node loadAndRegisterNode(Integer id) {
+        Node node = loadNodeFromCsv(id);
+        if (node != null) {
+            graphService.addNode(node);
+        }
+        return node;
     }
 
     private Node loadNodeFromCsv(int targetId) {
         try {
-            File f = activeFolder != null ? new File(activeFolder, "nodes.csv") : new File("src/main/resources/" + configService.getString("graph.nodesCsv"));
-            if (!f.exists()) f = new File(configService.getString("graph.nodesCsv"));
-            for (String l : Files.readAllLines(f.toPath())) {
-                String[] p = l.split(",");
-                if (p.length >= 4 && !p[0].equals("id") && Integer.parseInt(p[0].trim()) == targetId)
-                    return new Node(targetId, p[3].trim(), Double.parseDouble(p[1].trim()), Double.parseDouble(p[2].trim()));
+            return findNodeInFile(resolveNodesFile(), targetId);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "No se pudo cargar el nodo " + targetId + " desde el CSV", exception);
+            return null;
+        }
+    }
+
+    private File resolveNodesFile() {
+        File file = activeFolder != null ? new File(activeFolder, "nodes.csv")
+                : new File("src/main/resources/" + configService.getString("graph.nodesCsv"));
+        return file.exists() ? file : new File(configService.getString("graph.nodesCsv"));
+    }
+
+    private Node findNodeInFile(File file, int targetId) throws IOException {
+        for (String line : Files.readAllLines(file.toPath())) {
+            Node node = parseNodeLine(line, targetId);
+            if (node != null) {
+                return node;
             }
-        } catch (Exception ignored) {}
+        }
         return null;
+    }
+
+    private Node parseNodeLine(String line, int targetId) {
+        String[] parts = line.split(",");
+        if (parts.length < 4 || parts[0].equals("id")) return null;
+        if (Integer.parseInt(parts[0].trim()) != targetId) return null;
+        return new Node(targetId, parts[3].trim(), Double.parseDouble(parts[1].trim()),
+                Double.parseDouble(parts[2].trim()));
     }
 
     @Override
@@ -297,6 +365,7 @@ public class MapModelServiceImpl implements MapModelService {
     @Override
     public String saveRoute(String name) {
         savedRouteService.save(buildSavedRoute(name));
+        LOGGER.info("Ruta guardada con el nombre: " + name);
         return languageService.getText("status.routeSaved");
     }
 
@@ -324,48 +393,92 @@ public class MapModelServiceImpl implements MapModelService {
     @Override
     public GraphLoadResult loadExternalGraph(File folder) {
         try {
-            history.clear();
-            this.activeFolder = folder;
-            graphService.clearGraph();
-            csvLoader.loadNodes(new File(folder, "nodes.csv").getAbsolutePath());
-            csvLoader.loadEdges(new File(folder, "edges.csv").getAbsolutePath());
+            loadExternalFolder(folder);
             return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.ready"));
-        } catch (Exception e) { return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.graphLoadError")); }
+        } catch (Exception exception) {
+            return externalLoadFailure(folder, exception);
+        }
+    }
+
+    private void loadExternalFolder(File folder) throws IOException {
+        LOGGER.info("Cargando grafo desde la carpeta: " + folder.getAbsolutePath());
+        history.clear();
+        this.activeFolder = folder;
+        graphService.clearGraph();
+        csvLoader.loadNodes(new File(folder, "nodes.csv").getAbsolutePath());
+        csvLoader.loadEdges(new File(folder, "edges.csv").getAbsolutePath());
+    }
+
+    private GraphLoadResult externalLoadFailure(File folder, Exception exception) {
+        LOGGER.log(Level.SEVERE, "Error al cargar el grafo desde la carpeta " + folder.getAbsolutePath(), exception);
+        return new GraphLoadResult(graphService.getGraph(), languageService.getText("status.graphLoadError"));
     }
 
     @Override
     public boolean saveGraphToFolder(File folder) {
         try {
-            List<String> n = new ArrayList<>(List.of("id,lat,lon,name"));
-            graphService.getGraph().getNodes().values().forEach(nd -> n.add(nd.getId()+","+nd.getLat()+","+nd.getLon()+","+nd.getName()));
-            Files.write(new File(folder, "nodes.csv").toPath(), n);
-            List<String> e = new ArrayList<>(List.of("fromId,toId,oneWay"));
-            graphService.getGraph().getEdges().forEach(ed -> e.add(ed.getSource().getId()+","+ed.getDestination().getId()+","+ed.isOneWay()));
-            Files.write(new File(folder, "edges.csv").toPath(), e);
+            writeGraphFiles(folder);
+            LOGGER.info("Grafo guardado en la carpeta: " + folder.getAbsolutePath());
             return true;
-        } catch (Exception ex) { return false; }
+        } catch (Exception exception) {
+            LOGGER.log(Level.SEVERE, "Error al guardar el grafo en la carpeta " + folder.getAbsolutePath(), exception);
+            return false;
+        }
+    }
+
+    private void writeGraphFiles(File folder) throws IOException {
+        Files.createDirectories(folder.toPath());
+        Files.write(new File(folder, "nodes.csv").toPath(), nodeLines());
+        Files.write(new File(folder, "edges.csv").toPath(), edgeLines());
+    }
+
+    private List<String> nodeLines() {
+        List<String> lines = new ArrayList<>(List.of("id,lat,lon,name"));
+        graphService.getGraph().getNodes().values().forEach(node -> lines.add(toNodeLine(node)));
+        return lines;
+    }
+
+    private String toNodeLine(Node node) {
+        return node.getId() + "," + node.getLat() + "," + node.getLon() + "," + node.getName();
+    }
+
+    private List<String> edgeLines() {
+        List<String> lines = new ArrayList<>(List.of("fromId,toId,oneWay"));
+        graphService.getGraph().getEdges().forEach(edge -> lines.add(toEdgeLine(edge)));
+        return lines;
+    }
+
+    private String toEdgeLine(Edge edge) {
+        return edge.getSource().getId() + "," + edge.getDestination().getId() + "," + edge.isOneWay();
     }
 
     @Override
     public boolean saveGraph() {
-        try {
-            var f = activeFolder != null ? activeFolder : new File("src/main/resources/csv");
-            var n = graphService.getGraph().getNodes().values().stream().map(x -> x.getId()+","+x.getLat()+","+x.getLon()+","+x.getName()).toList();
-            var e = graphService.getGraph().getEdges().stream().map(x -> x.getSource().getId()+","+x.getDestination().getId()+","+x.isOneWay()).toList();
-            Files.write(new File(f, "nodes.csv").toPath(), Stream.concat(Stream.of("id,lat,lon,name"), n.stream()).toList());
-            Files.write(new File(f, "edges.csv").toPath(), Stream.concat(Stream.of("fromId,toId,oneWay"), e.stream()).toList());
-            return true;
-        } catch (Exception ex) { return false; }
+        return saveGraphToFolder(resolveSaveFolder());
+    }
+
+    private File resolveSaveFolder() {
+        if (activeFolder != null) {
+            return activeFolder;
+        }
+        return new File(configService.getString("graph.saveFolder"));
     }
 
     @Override
     public InteractionResult undo() {
-        if (history.isEmpty()) return InteractionResult.message("No hay acciones");
-        Graph prev = history.pop();
-        graphService.clearGraph();
-        prev.getNodes().values().forEach(graphService::addNode);
-        prev.getEdges().forEach(graphService::addEdge);
+        if (history.isEmpty()) {
+            LOGGER.warning("No hay acciones para deshacer");
+            return InteractionResult.message("No hay acciones");
+        }
+        restoreSnapshot(history.pop());
+        LOGGER.info("Última acción deshecha");
         return InteractionResult.message("Action undone");
+    }
+
+    private void restoreSnapshot(Graph snapshot) {
+        graphService.clearGraph();
+        snapshot.getNodes().values().forEach(graphService::addNode);
+        snapshot.getEdges().forEach(graphService::addEdge);
     }
 
     @Override

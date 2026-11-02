@@ -19,9 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class LoadLanguageDialog extends JDialog {
 
+    private static final Logger LOGGER = Logger.getLogger(LoadLanguageDialog.class.getName());
     private final LanguageService languageService;
     private JTextField languageCodeField;
     private JTextArea yamlArea;
@@ -100,6 +103,7 @@ public class LoadLanguageDialog extends JDialog {
         try {
             return Files.readString(file.toPath(), StandardCharsets.UTF_8);
         } catch (IOException exception) {
+            LOGGER.log(Level.SEVERE, "Error al leer el archivo de idioma: " + file.getAbsolutePath(), exception);
             return "";
         }
     }
@@ -114,6 +118,7 @@ public class LoadLanguageDialog extends JDialog {
 
     private boolean tryAddLanguage() {
         if (selectedFile == null) {
+            LOGGER.warning("No se seleccionó ningún archivo de idioma");
             return false;
         }
         String code = languageCodeField.getText().trim().toLowerCase();

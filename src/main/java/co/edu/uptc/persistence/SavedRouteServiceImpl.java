@@ -11,11 +11,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class SavedRouteServiceImpl implements SavedRouteService {
 
     private static final String SEPARATOR = "\t";
+    private static final Logger LOGGER = Logger.getLogger(SavedRouteServiceImpl.class.getName());
 
     private final Path filePath;
     private final List<SavedRoute> routes;
@@ -42,11 +45,18 @@ public class SavedRouteServiceImpl implements SavedRouteService {
 
     private void load() {
         if (!Files.exists(filePath)) {
+            LOGGER.info("No existe el archivo de rutas guardadas: " + filePath);
             return;
         }
+        readSavedRoutes();
+    }
+
+    private void readSavedRoutes() {
         try {
             Files.readAllLines(filePath, StandardCharsets.UTF_8).forEach(this::addFromLine);
+            LOGGER.info("Rutas guardadas cargadas: " + routes.size() + " desde " + filePath);
         } catch (IOException exception) {
+            LOGGER.log(Level.SEVERE, "Error al cargar rutas guardadas desde " + filePath, exception);
             routes.clear();
         }
     }
@@ -66,6 +76,7 @@ public class SavedRouteServiceImpl implements SavedRouteService {
         try {
             return buildRoute(parts);
         } catch (NumberFormatException exception) {
+            LOGGER.warning("Línea de ruta inválida en " + filePath + ": " + String.join(" | ", parts));
             return null;
         }
     }
@@ -86,8 +97,9 @@ public class SavedRouteServiceImpl implements SavedRouteService {
         try {
             createParentDirectory();
             Files.write(filePath, toLines(), StandardCharsets.UTF_8);
+            LOGGER.info("Rutas guardadas en: " + filePath);
         } catch (IOException exception) {
-            // La ruta permanece en memoria aunque falle el archivo.
+            LOGGER.log(Level.SEVERE, "Error al guardar rutas en " + filePath, exception);
         }
     }
 

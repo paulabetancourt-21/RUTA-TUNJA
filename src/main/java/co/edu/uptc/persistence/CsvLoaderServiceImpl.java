@@ -12,9 +12,13 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 public class CsvLoaderServiceImpl implements CsvLoaderService {
+
+    private static final Logger LOGGER = Logger.getLogger(CsvLoaderServiceImpl.class.getName());
     private final GraphService graphService;
 
     public CsvLoaderServiceImpl(GraphService graphService) {
@@ -23,15 +27,23 @@ public class CsvLoaderServiceImpl implements CsvLoaderService {
 
     @Override
     public void loadNodes(String filePath) throws IOException {
+        LOGGER.info("Cargando nodos desde: " + filePath);
         try (Stream<String> lines = readLines(filePath)) {
             lines.skip(1).forEach(this::parseAndAddNode);
+        } catch (IOException | RuntimeException exception) {
+            LOGGER.log(Level.SEVERE, "Error al cargar nodos desde " + filePath, exception);
+            throw exception;
         }
     }
 
     @Override
     public void loadEdges(String filePath) throws IOException {
+        LOGGER.info("Cargando aristas desde: " + filePath);
         try (Stream<String> lines = readLines(filePath)) {
             lines.skip(1).forEach(this::parseAndAddEdge);
+        } catch (IOException | RuntimeException exception) {
+            LOGGER.log(Level.SEVERE, "Error al cargar aristas desde " + filePath, exception);
+            throw exception;
         }
     }
 

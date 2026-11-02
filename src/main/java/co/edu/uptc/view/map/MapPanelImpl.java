@@ -24,9 +24,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MapPanelImpl extends JPanel implements MapPanel {
 
+    private static final Logger LOGGER = Logger.getLogger(MapPanelImpl.class.getName());
     private static final double MIN_ZOOM = 0.1;
     private static final double MAX_ZOOM = 20.0;
     private static final double ARROW_ANGLE = Math.toRadians(28);
@@ -62,10 +65,19 @@ public class MapPanelImpl extends JPanel implements MapPanel {
     private void loadMapImage() {
         String imagePath = configService.getString("map.imagePath");
         try (InputStream stream = getClass().getClassLoader().getResourceAsStream(imagePath)) {
-            this.mapImage = stream == null ? null : ImageIO.read(stream);
+            this.mapImage = readImage(stream, imagePath);
         } catch (IOException exception) {
+            LOGGER.log(Level.SEVERE, "Error al cargar la imagen del mapa: " + imagePath, exception);
             this.mapImage = null;
         }
+    }
+
+    private BufferedImage readImage(InputStream stream, String imagePath) throws IOException {
+        if (stream == null) {
+            LOGGER.warning("No se encontró la imagen del mapa: " + imagePath);
+            return null;
+        }
+        return ImageIO.read(stream);
     }
 
     private void initComponentListener() {

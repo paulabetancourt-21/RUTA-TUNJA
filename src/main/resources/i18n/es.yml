@@ -74,10 +74,10 @@ message:
   noRoute: "No existe ruta entre el origen y el destino"
   selectOrigin: "Seleccione el origen"
   selectDestination: "Seleccione el destino"
-  confirmNewGraph: "¿Desea crear un nuevo grafo? Los cambios no guardados se perderán."
+  confirmNewGraph: "¿Desea limpiar el grafo? Al reiniciar la aplicación volverán los nodos por defecto."
   newGraphTitle: "Nuevo grafo"
   graphSavedTitle: "Guardar grafo"
-  graphSavedMessage: "Grafo guardado exitosamente en nodes.csv y edges.csv."
+  graphSavedMessage: "Grafo guardado en la carpeta de trabajo. Los nodos por defecto no se modificaron."
 
 dialog:
   createNode:

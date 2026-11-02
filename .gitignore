@@ -1,0 +1,7 @@
+# Logs generados por java.util.logging
+logs/
+*.log
+*.log.lck
+
+# Grafo guardado por el usuario (datos de ejecución)
+data/graph/

@@ -25,6 +25,7 @@ co\edu\uptc\util\AbstractYamlService.class
 co\edu\uptc\model\DijkstraServiceImpl.class
 co\edu\uptc\view\map\MapPanelImpl$2.class
 co\edu\uptc\model\GraphService.class
+co\edu\uptc\logging\LoggingConfig.class
 co\edu\uptc\view\via\CreateEdgeDialog.class
 co\edu\uptc\model\GraphServiceImpl.class
 co\edu\uptc\persistence\SavedRouteServiceImpl.class
