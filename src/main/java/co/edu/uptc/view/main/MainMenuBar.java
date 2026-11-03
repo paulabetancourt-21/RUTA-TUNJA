@@ -67,7 +67,7 @@ public class MainMenuBar extends JMenuBar {
 
     private void addSavedRouteItem(JMenu menu, SavedRoute route) {
         String template = languageService.getText("menu.savedRouteItem");
-        JMenuItem item = new JMenuItem(String.format(template, route.name(), route.distanceKm()));
+        JMenuItem item = new JMenuItem(String.format(template, route.getName(), route.getDistanceKm()));
         item.addActionListener(event -> presenter.showSavedRoute(route));
         menu.add(item);
     }
