@@ -31,15 +31,13 @@ public interface MapView {
 
     void showGraphSaved();
 
-    void showUndo();
-
     void clearRoute(String message);
 
     void confirmNewGraph();
 
     void updateStatusMessage(String message);
 
-    void updateCoordinates(double lat, double lon, int zoomPercentage);
+    void closeApplication();
 
     void showConfigDialog();
 

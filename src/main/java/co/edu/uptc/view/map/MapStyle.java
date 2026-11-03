@@ -1,9 +1,12 @@
 package co.edu.uptc.view.map;
 
-import java.awt.Color;
+import co.edu.uptc.config.ConfigService;
+import co.edu.uptc.util.ColorUtil;
 
 import lombok.Getter;
 import lombok.Setter;
+
+import java.awt.Color;
 
 @Getter
 @Setter
@@ -18,15 +21,23 @@ public class MapStyle {
     private Color originColor;
     private Color destinationColor;
 
-    public MapStyle() {
-        this.nodeDiameter = 10;
-        this.edgeWidth = 2.0f;
-        this.routeWidth = 4.0f;
-        this.nodeColor = new Color(200, 30, 30);
-        this.edgeColor = new Color(60, 60, 60);
-        this.routeColor = new Color(30, 90, 220);
-        this.labelColor = Color.BLACK;
-        this.originColor = new Color(20, 150, 60);
-        this.destinationColor = new Color(230, 120, 20);
+    public MapStyle(ConfigService config) {
+        loadMetrics(config);
+        loadColors(config);
+    }
+
+    private void loadMetrics(ConfigService config) {
+        this.nodeDiameter = config.getInt("ui.style.nodeDiameter");
+        this.edgeWidth = (float) config.getDouble("ui.style.edgeWidth");
+        this.routeWidth = (float) config.getDouble("ui.style.routeWidth");
+    }
+
+    private void loadColors(ConfigService config) {
+        this.nodeColor = ColorUtil.fromHex(config.getString("ui.style.nodeColor"));
+        this.edgeColor = ColorUtil.fromHex(config.getString("ui.style.edgeColor"));
+        this.routeColor = ColorUtil.fromHex(config.getString("ui.style.routeColor"));
+        this.labelColor = ColorUtil.fromHex(config.getString("ui.style.labelColor"));
+        this.originColor = ColorUtil.fromHex(config.getString("ui.style.originColor"));
+        this.destinationColor = ColorUtil.fromHex(config.getString("ui.style.destinationColor"));
     }
 }

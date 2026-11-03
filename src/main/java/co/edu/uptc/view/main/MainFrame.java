@@ -13,6 +13,7 @@ import co.edu.uptc.presenter.MapPresenter;
 import co.edu.uptc.view.MapView;
 import co.edu.uptc.view.help.AboutDialog;
 import co.edu.uptc.view.help.ConfigDialog;
+import co.edu.uptc.view.help.DialogContext;
 import co.edu.uptc.view.help.HowItWorksDialog;
 import co.edu.uptc.view.help.LoadLanguageDialog;
 import co.edu.uptc.view.map.MapPanelImpl;
@@ -22,6 +23,7 @@ import co.edu.uptc.view.route.CalculateRouteDialog;
 import co.edu.uptc.view.route.SaveRouteDialog;
 import co.edu.uptc.view.via.CreateEdgeDialog;
 import co.edu.uptc.view.via.CreateNodeDialog;
+
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -33,22 +35,25 @@ import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
 public class MainFrame extends JFrame implements MapView {
 
-    private static final double ZOOM_STEP = 1.2;
-
     private final LanguageService languageService;
+    private final ConfigService configService;
+    private final DialogContext dialogContext;
     private final StatusBar statusBar;
     private final MapPanelImpl mapPanel;
     private MapPresenter presenter;
 
     public MainFrame(LanguageService languageService, ConfigService configService) {
         this.languageService = languageService;
-        this.statusBar = new StatusBar(languageService);
+        this.configService = configService;
+        this.dialogContext = new DialogContext(this, languageService, configService);
+        this.statusBar = new StatusBar(languageService, configService);
         this.mapPanel = new MapPanelImpl(configService, languageService);
         initLayout();
         registerEscapeKey();
@@ -161,11 +166,6 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     @Override
-    public void showUndo() {
-        updateStatusMessage(languageService.getText("status.undo"));
-    }
-
-    @Override
     public void clearRoute(String message) {
         mapPanel.setRoute(List.of());
         updateStatusMessage(message);
@@ -183,7 +183,7 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     private void showCreateNodeDialog(double latitude, double longitude) {
-        CreateNodeDialog dialog = new CreateNodeDialog(this, languageService);
+        CreateNodeDialog dialog = new CreateNodeDialog(this, dialogContext);
         dialog.setCoordinates(latitude, longitude);
         dialog.setVisible(true);
         forwardCreateNode(dialog, latitude, longitude);
@@ -198,7 +198,7 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     private void showCreateEdgeDialog(Node source, Node destination, double distanceKm) {
-        CreateEdgeDialog dialog = new CreateEdgeDialog(this, languageService);
+        CreateEdgeDialog dialog = new CreateEdgeDialog(this, dialogContext);
         dialog.setEdgeData(describeNode(source), describeNode(destination), distanceKm);
         dialog.setVisible(true);
         forwardCreateEdge(dialog, source, destination);
@@ -213,7 +213,7 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     private void showCalculateRouteDialog(Node origin, Node destination) {
-        CalculateRouteDialog dialog = new CalculateRouteDialog(this, languageService);
+        CalculateRouteDialog dialog = new CalculateRouteDialog(this, dialogContext);
         dialog.setRouteEndpoints(describeNode(origin), describeNode(destination));
         dialog.setVisible(true);
         forwardCalculateRoute(dialog, origin, destination);
@@ -228,7 +228,7 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     private void showSaveRouteDialog(String routeSummary) {
-        SaveRouteDialog dialog = new SaveRouteDialog(this, languageService, routeSummary);
+        SaveRouteDialog dialog = new SaveRouteDialog(this, dialogContext, routeSummary);
         dialog.setVisible(true);
         forwardSaveRoute(dialog);
     }
@@ -249,7 +249,7 @@ public class MainFrame extends JFrame implements MapView {
 
     @Override
     public void showConfigDialog() {
-        ConfigDialog dialog = new ConfigDialog(this, languageService, mapPanel.getStyle());
+        ConfigDialog dialog = new ConfigDialog(this, dialogContext, mapPanel.getStyle());
         dialog.setVisible(true);
         forwardConfig(dialog);
     }
@@ -268,7 +268,7 @@ public class MainFrame extends JFrame implements MapView {
 
     @Override
     public void showLoadLanguageDialog() {
-        LoadLanguageDialog dialog = new LoadLanguageDialog(this, languageService);
+        LoadLanguageDialog dialog = new LoadLanguageDialog(this, dialogContext);
         dialog.setVisible(true);
         forwardLoadedLanguage(dialog);
     }
@@ -290,12 +290,12 @@ public class MainFrame extends JFrame implements MapView {
 
     @Override
     public void showHowItWorksDialog() {
-        new HowItWorksDialog(this, languageService).setVisible(true);
+        new HowItWorksDialog(this, dialogContext).setVisible(true);
     }
 
     @Override
     public void showAboutDialog() {
-        new AboutDialog(this, languageService).setVisible(true);
+        new AboutDialog(this, dialogContext).setVisible(true);
     }
 
     @Override
@@ -313,24 +313,24 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     private void refreshMenuBar() {
-        setJMenuBar(new MainMenuBar(languageService, presenter));
+        setJMenuBar(new MainMenuBar(languageService, presenter, configService));
         revalidate();
         repaint();
     }
 
     @Override
     public void zoomIn() {
-        applyZoom(mapPanel.getZoomFactor() * ZOOM_STEP);
+        applyZoom(mapPanel.getZoomFactor() * configService.getDouble("ui.zoomStep"));
     }
 
     @Override
     public void zoomOut() {
-        applyZoom(mapPanel.getZoomFactor() / ZOOM_STEP);
+        applyZoom(mapPanel.getZoomFactor() / configService.getDouble("ui.zoomStep"));
     }
 
     @Override
     public void resetZoom() {
-        applyZoom(1.0);
+        applyZoom(configService.getDouble("ui.initialZoom"));
     }
 
     private void applyZoom(double zoomFactor) {
@@ -339,7 +339,8 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     private void reportZoom() {
-        int percentage = (int) (mapPanel.getZoomFactor() * 100);
+        int factor = configService.getInt("ui.zoomPercentFactor");
+        int percentage = (int) (mapPanel.getZoomFactor() * factor);
         updateStatusMessage(String.format(languageService.getText("status.zoomChanged"), percentage));
     }
 
@@ -358,8 +359,8 @@ public class MainFrame extends JFrame implements MapView {
     }
 
     @Override
-    public void updateCoordinates(double lat, double lon, int zoomPercentage) {
-        statusBar.setCoordinates(lat, lon, zoomPercentage);
+    public void closeApplication() {
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
     private class CancelAction extends AbstractAction {

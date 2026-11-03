@@ -26,12 +26,6 @@ public abstract class AbstractYamlService {
         loaded = true;
     }
 
-    protected void reload(String resourcePath) {
-        loaded = false;
-        dataMap = new HashMap<String, Object>();
-        loadIfNeeded(resourcePath);
-    }
-
     protected boolean isMap(Object object) {
         return object instanceof Map;
     }
@@ -39,13 +33,17 @@ public abstract class AbstractYamlService {
     @SuppressWarnings("unchecked")
     protected Object getValue(String key) {
         Object current = dataMap;
-        String[] parts = key.split("\\.");
-        for (String part : parts) {
-            if (!isMap(current)) {
-                return null;
-            }
-            current = ((Map<String, Object>) current).get(part);
+        for (String part : key.split("\\.")) {
+            current = valueOf(current, part);
         }
         return current;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Object valueOf(Object current, String part) {
+        if (!isMap(current)) {
+            return null;
+        }
+        return ((Map<String, Object>) current).get(part);
     }
 }

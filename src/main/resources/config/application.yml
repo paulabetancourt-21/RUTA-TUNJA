@@ -1,7 +1,8 @@
 files:
-  applicationConfig: config/application.yml
   i18nPrefix: i18n/
   i18nExtension: .yml
+  i18nFilterExtension: yml
+  i18nEncoding: UTF-8
   externalI18nDir: extraI18n/
 
 map:
@@ -17,21 +18,125 @@ graph:
   nodesCsv: csv/nodes.csv
   edgesCsv: csv/edges.csv
   saveFolder: data/graph
+  resourcesBasePath: src/main/resources/
+  nodesFileName: nodes.csv
+  edgesFileName: edges.csv
+  csvSeparator: ","
+  csvEncoding: UTF-8
+  csvHeaderLines: 1
+  nodesHeader: "id,lat,lon,name"
+  nodesIdHeader: "id"
+  edgesHeader: "fromId,toId,oneWay"
 
 routes:
   savedFile: data/saved-routes.csv
+  fieldSeparator: "\t"
+  nodeIdSeparator: ","
+  encoding: UTF-8
 
 tolerance:
   clickRadiusPx: 10
 
+ui:
+  zoomStep: 1.2
+  initialZoom: 1.0
+  zoomPercentFactor: 100
+  map:
+    minZoom: 0.1
+    maxZoom: 20.0
+    background: "#F5F5F5"
+    minNodeDiameter: 6
+    selectionFactor: 3
+    arrowAngleDegrees: 28
+    arrowFactor: 1.8
+    minStroke: 1.0
+    minArrowLength: 4.0
+  style:
+    nodeDiameter: 10
+    edgeWidth: 2.0
+    routeWidth: 4.0
+    nodeColor: "#C81E1E"
+    edgeColor: "#3C3C3C"
+    routeColor: "#1E5ADC"
+    labelColor: "#000000"
+    originColor: "#14963C"
+    destinationColor: "#E67814"
+  configDialog:
+    nodeSizes: [6, 8, 10, 12, 14, 16, 18, 20, 22]
+    strokeWidths: [1, 2, 3, 4, 5, 6, 7, 8]
+  dialog:
+    fontFamily: "SansSerif"
+    accentColor: "#1D4ED8"
+    textColor: "#111827"
+    mutedColor: "#6B7280"
+    cardBackground: "#F8FAFC"
+    cardBorder: "#E5E7EB"
+    sectionSpacing: 14
+    separatorSpacing: 8
+    dialogGap: 12
+    htmlWidthPx: 430
+    stepTextWidthPx: 370
+    stepsCount: 4
+    stepsGap: 10
+    stepCardGap: 12
+    badgeSize: 30
+    gridRowGap: 5
+    gridColumnGap: 12
+    cardPadding: [10, 12, 10, 12]
+    aboutInsets: [20, 28, 16, 28]
+    howItWorksInsets: [20, 24, 16, 24]
+    aboutTitleFontSize: 22
+    aboutTaglineFontSize: 13
+    aboutVersionFontSize: 12
+    aboutDescriptionFontSize: 12
+    aboutKeyFontSize: 12
+    aboutValueFontSize: 13
+    aboutFooterFontSize: 11
+    howItWorksTitleFontSize: 20
+    howItWorksSubtitleFontSize: 13
+    howItWorksTipFontSize: 12
+    badgeFontSize: 14
+  dialogs:
+    contentGap: 10
+    contentBorder: [14, 18, 14, 18]
+    routeContentBorder: [16, 20, 16, 20]
+    configInsets: [16, 20, 16, 20]
+    loadLanguageInsets: [14, 18, 14, 18]
+    fieldColumns: 15
+    routeFieldColumns: 18
+    saveRouteFieldColumns: 20
+    languageCodeColumns: 15
+    textAreaRows: 8
+    textAreaColumns: 25
+    formRowGap: 6
+    edgeFormRowGap: 4
+    configGridGap: 6
+    buttonTopPadding: 8
+    configButtonTopPadding: 10
+    coordinateFormat: "%.6f"
+    edgeDistanceFormat: "%.2f m"
+    metersPerKm: 1000
+  menu:
+    maxLanguageAccelerators: 8
+  status:
+    padding: [4, 8, 4, 8]
+    coordinateFormat: "%s %.5f %s %.5f %s %d%%"
+    initialLatitude: 0.0
+    initialLongitude: 0.0
+    defaultZoomPercent: 100
+
 logs:
   directory: logs
   fileNamePattern: mapRouteTunja-yyyy-MM-dd.log
+  extension: .log
+  encoding: UTF-8
   rotationDays: 3
+  minRotationDays: 1
   level: INFO
 
 i18n:
   defaultLanguage: es
+  codePattern: "[a-z]{2}"
   availableLanguages:
     - es
     - en

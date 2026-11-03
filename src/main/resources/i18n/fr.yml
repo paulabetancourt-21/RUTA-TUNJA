@@ -68,6 +68,9 @@ status:
   invalidNode: "Cliquez sur un nœud valide."
   graphLoadError: "Le graphe n'a pas pu être chargé."
   actionCancelled: "Action annulée."
+  noActions: "Aucune action à annuler."
+  graphSaveError: "Le graphe n'a pas pu être enregistré."
+  routeSaveError: "L'itinéraire n'a pas pu être enregistré."
 
 message:
   samePoint: "L'origine et la destination sont identiques"

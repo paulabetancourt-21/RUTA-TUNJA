@@ -1,16 +1,11 @@
 package co.edu.uptc;
 
+import co.edu.uptc.app.ApplicationContext;
 import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.config.YamlConfigService;
-import co.edu.uptc.i18n.LanguageService;
-import co.edu.uptc.i18n.YamlLanguageService;
 import co.edu.uptc.logging.LoggingConfig;
-import co.edu.uptc.model.MapModelService;
-import co.edu.uptc.model.MapModelServiceImpl;
-import co.edu.uptc.presenter.MapPresenter;
-import co.edu.uptc.presenter.MapPresenterImpl;
-import co.edu.uptc.view.main.MainFrame;
 import com.formdev.flatlaf.FlatLightLaf;
+
 import javax.swing.SwingUtilities;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,6 +22,10 @@ public class Main {
         ConfigService configService = new YamlConfigService();
         LoggingConfig.configure(configService);
         addShutdownLog();
+        launch(configService);
+    }
+
+    private static void launch(ConfigService configService) {
         try {
             startUi(configService);
             LOGGER.info("Aplicación iniciada correctamente");
@@ -38,12 +37,7 @@ public class Main {
 
     private static void startUi(ConfigService configService) {
         FlatLightLaf.setup();
-        LanguageService languageService = new YamlLanguageService(configService);
-        MainFrame mainFrame = new MainFrame(languageService, configService);
-        MapModelService model = new MapModelServiceImpl(configService, languageService);
-        MapPresenter presenter = new MapPresenterImpl(mainFrame, model);
-        mainFrame.setPresenter(presenter);
-        presenter.start();
+        new ApplicationContext(configService).start();
     }
 
     private static void addShutdownLog() {

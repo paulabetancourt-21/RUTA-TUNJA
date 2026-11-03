@@ -43,9 +43,13 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     }
 
     private void loadExternalDirectory() {
-        String ext = configService.getString("files.i18nExtension");
-        File[] files = externalDirectory().listFiles((d, n) -> n.endsWith(ext));
-        if (files != null) for (File f : files) loadExternalLanguage(f);
+        String extension = configService.getString("files.i18nExtension");
+        File[] files = externalDirectory().listFiles((directory, name) -> name.endsWith(extension));
+        if (files != null) {
+            for (File file : files) {
+                loadExternalLanguage(file);
+            }
+        }
     }
 
     private File externalDirectory() {
@@ -155,7 +159,7 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     }
 
     private boolean validCode(String code) {
-        return code.matches("[a-z]{2}");
+        return code.matches(configService.getString("i18n.codePattern"));
     }
 
     private Map<String, Object> loadMap(File file) {
@@ -200,11 +204,6 @@ public class YamlLanguageService extends AbstractYamlService implements Language
     private void copyFile(File source, Path target) throws IOException {
         Files.createDirectories(target.toAbsolutePath().getParent());
         Files.copy(source.toPath(), target, StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    @Override
-    public String getCurrentLanguage() {
-        return currentLanguage;
     }
 
     @Override

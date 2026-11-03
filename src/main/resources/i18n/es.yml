@@ -68,6 +68,9 @@ status:
   invalidNode: "Haz clic sobre un nodo válido."
   graphLoadError: "No se pudo cargar el grafo."
   actionCancelled: "Acción cancelada."
+  noActions: "No hay acciones para deshacer."
+  graphSaveError: "No se pudo guardar el grafo."
+  routeSaveError: "No se pudo guardar la ruta."
 
 message:
   samePoint: "El origen y el destino son el mismo punto"

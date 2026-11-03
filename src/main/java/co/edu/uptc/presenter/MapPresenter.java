@@ -37,4 +37,5 @@ public interface MapPresenter extends MapClickListener {
     void openHowItWorksDialog();
     void openAboutDialog();
     void loadGraphFromFolder(File folder);
+    void exitApplication();
 }

@@ -3,9 +3,7 @@ package co.edu.uptc.config;
 import co.edu.uptc.util.AbstractYamlService;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class YamlConfigService extends AbstractYamlService implements ConfigService {
 
@@ -40,25 +38,10 @@ public class YamlConfigService extends AbstractYamlService implements ConfigServ
     }
 
     @Override
-    public boolean getBoolean(String key) {
-        ensureLoaded();
-        Object value = getValue(key);
-        return value != null && parseBoolean(value);
-    }
-
-    @Override
     public double getDouble(String key) {
         ensureLoaded();
         Object value = getValue(key);
         return value == null ? 0.0 : parseDouble(value);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> getSection(String key) {
-        ensureLoaded();
-        Object value = getValue(key);
-        return isMap(value) ? (Map<String, Object>) value : new HashMap<>();
     }
 
     @Override

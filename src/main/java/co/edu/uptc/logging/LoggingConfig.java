@@ -25,19 +25,18 @@ public final class LoggingConfig {
     }
 
     public static void configure(ConfigService config) {
-        setupHandlers(config.getString("logs.directory"), config.getString("logs.fileNamePattern"));
+        setupHandlers(config);
         applyLevel(config.getString("logs.level"));
-        deleteOldLogs(config.getString("logs.directory"), config.getString("logs.fileNamePattern"),
-                config.getInt("logs.rotationDays"));
+        deleteOldLogs(config);
     }
 
-    private static void setupHandlers(String directory, String pattern) {
+    private static void setupHandlers(ConfigService config) {
         resetRootLogger();
         ROOT.addHandler(createConsoleHandler());
         try {
-            ROOT.addHandler(createFileHandler(directory, pattern));
+            ROOT.addHandler(createFileHandler(config));
         } catch (IOException exception) {
-            LOGGER.log(Level.SEVERE, "No se pudo crear el archivo de log en " + directory, exception);
+            LOGGER.log(Level.SEVERE, "No se pudo crear el archivo de log", exception);
         }
     }
 
@@ -47,40 +46,43 @@ public final class LoggingConfig {
         return handler;
     }
 
-    private static Handler createFileHandler(String directory, String pattern) throws IOException {
-        Path folder = Paths.get(directory);
+    private static Handler createFileHandler(ConfigService config) throws IOException {
+        Path folder = Paths.get(config.getString("logs.directory"));
         Files.createDirectories(folder);
-        FileHandler handler = new FileHandler(folder.resolve(buildFileName(pattern)).toString(), true);
+        String fileName = LogPaths.buildFileName(config.getString("logs.fileNamePattern"), LocalDate.now());
+        FileHandler handler = new FileHandler(folder.resolve(fileName).toString(), true);
         handler.setFormatter(new SimpleFormatter());
-        handler.setEncoding("UTF-8");
+        handler.setEncoding(config.getString("logs.encoding"));
         return handler;
     }
 
-    private static String buildFileName(String pattern) {
-        LocalDate today = LocalDate.now();
-        return pattern.replace("yyyy", String.valueOf(today.getYear()))
-                .replace("MM", String.format("%02d", today.getMonthValue()))
-                .replace("dd", String.format("%02d", today.getDayOfMonth()));
-    }
-
-    private static void deleteOldLogs(String directory, String pattern, int rotationDays) {
-        File[] logs = new File(directory).listFiles((dir, name) -> matchLog(name, pattern));
+    private static void deleteOldLogs(ConfigService config) {
+        File[] logs = listLogs(config);
         if (logs == null) {
             return;
         }
-        long limit = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(Math.max(rotationDays, 1));
+        long limit = expirationLimit(config);
         for (File log : logs) {
             deleteIfExpired(log, limit);
         }
     }
 
-    private static boolean matchLog(String name, String pattern) {
-        return name.startsWith(logPrefix(pattern)) && name.endsWith(".log");
+    private static File[] listLogs(ConfigService config) {
+        File directory = new File(config.getString("logs.directory"));
+        return directory.listFiles((dir, name) -> matchesLog(name, config));
     }
 
-    private static String logPrefix(String pattern) {
-        int index = pattern.indexOf("yyyy");
-        return index > 0 ? pattern.substring(0, index) : "";
+    private static boolean matchesLog(String name, ConfigService config) {
+        String pattern = config.getString("logs.fileNamePattern");
+        String extension = config.getString("logs.extension");
+        return LogPaths.matches(name, pattern, extension);
+    }
+
+    private static long expirationLimit(ConfigService config) {
+        int days = config.getInt("logs.rotationDays");
+        int minimum = config.getInt("logs.minRotationDays");
+        long millis = TimeUnit.DAYS.toMillis(Math.max(days, minimum));
+        return System.currentTimeMillis() - millis;
     }
 
     private static void deleteIfExpired(File file, long limit) {

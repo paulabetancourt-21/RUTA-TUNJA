@@ -1,6 +1,6 @@
 package co.edu.uptc.view.help;
 
-import co.edu.uptc.i18n.LanguageService;
+import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.view.map.MapStyle;
 
 import javax.swing.BorderFactory;
@@ -15,13 +15,11 @@ import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.List;
 
 public class ConfigDialog extends JDialog {
 
-    private static final Integer[] NODE_SIZES = {6, 8, 10, 12, 14, 16, 18, 20, 22};
-    private static final Integer[] STROKE_WIDTHS = {1, 2, 3, 4, 5, 6, 7, 8};
-
-    private final LanguageService languageService;
+    private final DialogContext context;
     private JButton nodeColorButton;
     private JButton edgeColorButton;
     private JButton routeColorButton;
@@ -36,9 +34,9 @@ public class ConfigDialog extends JDialog {
     private JComboBox<Integer> strokeWidthCombo;
     private boolean confirmed;
 
-    public ConfigDialog(JFrame parent, LanguageService languageService, MapStyle style) {
-        super(parent, languageService.getText("dialog.config.title"), true);
-        this.languageService = languageService;
+    public ConfigDialog(JFrame parent, DialogContext context, MapStyle style) {
+        super(parent, context.languageService().getText("dialog.config.title"), true);
+        this.context = context;
         initDialog();
         initFields(style);
         add(createFormPanel(), BorderLayout.CENTER);
@@ -48,28 +46,30 @@ public class ConfigDialog extends JDialog {
     }
 
     private void initDialog() {
-        setLayout(new BorderLayout(10, 10));
-        ((JPanel) getContentPane()).setBorder(new EmptyBorder(16, 20, 16, 20));
+        int gap = config().getInt("ui.dialogs.contentGap");
+        setLayout(new BorderLayout(gap, gap));
+        ((JPanel) getContentPane()).setBorder(new EmptyBorder(theme().insets("ui.dialogs.configInsets")));
     }
 
     private void initFields(MapStyle style) {
         initColors(style);
-        nodeSizeCombo = createNumberCombo(NODE_SIZES, style.getNodeDiameter());
-        strokeWidthCombo = createNumberCombo(STROKE_WIDTHS, Math.round(style.getEdgeWidth()));
+        nodeSizeCombo = createNumberCombo(readValues("nodeSizes"), style.getNodeDiameter());
+        strokeWidthCombo = createNumberCombo(readValues("strokeWidths"), Math.round(style.getEdgeWidth()));
+    }
+
+    private Integer[] readValues(String key) {
+        List<String> values = config().getList("ui.configDialog." + key);
+        return values.stream().map(Integer::valueOf).toArray(Integer[]::new);
     }
 
     private void initColors(MapStyle style) {
-        initColorValues(style);
-        initColorButtons();
-        addColorListeners();
-    }
-
-    private void initColorValues(MapStyle style) {
         nodeColor = style.getNodeColor();
         edgeColor = style.getEdgeColor();
         routeColor = style.getRouteColor();
         originColor = style.getOriginColor();
         destinationColor = style.getDestinationColor();
+        initColorButtons();
+        addColorListeners();
     }
 
     private void initColorButtons() {
@@ -81,7 +81,7 @@ public class ConfigDialog extends JDialog {
     }
 
     private JButton createColorButton(Color color) {
-        JButton button = new JButton(languageService.getText("dialog.config.chooseColor"));
+        JButton button = new JButton(context.languageService().getText("dialog.config.chooseColor"));
         button.setBackground(color);
         button.setOpaque(true);
         return button;
@@ -94,53 +94,43 @@ public class ConfigDialog extends JDialog {
     }
 
     private void addColorListeners() {
-        nodeColorButton.addActionListener(event -> updateNodeColor());
-        edgeColorButton.addActionListener(event -> updateEdgeColor());
-        routeColorButton.addActionListener(event -> updateRouteColor());
-        originColorButton.addActionListener(event -> updateOriginColor());
-        destinationColorButton.addActionListener(event -> updateDestinationColor());
+        nodeColorButton.addActionListener(event -> nodeColor = updateColor(nodeColorButton, "nodeColor"));
+        edgeColorButton.addActionListener(event -> edgeColor = updateColor(edgeColorButton, "edgeColor"));
+        routeColorButton.addActionListener(event -> routeColor = updateColor(routeColorButton, "routeColor"));
+        originColorButton.addActionListener(event -> originColor = updateColor(originColorButton, "originColor"));
+        destinationColorButton.addActionListener(event -> destinationColor = updateColor(destinationColorButton, "destinationColor"));
     }
 
-    private void updateNodeColor() {
-        nodeColor = chooseColor(nodeColor, "dialog.config.nodeColor");
-        nodeColorButton.setBackground(nodeColor);
-    }
-
-    private void updateEdgeColor() {
-        edgeColor = chooseColor(edgeColor, "dialog.config.edgeColor");
-        edgeColorButton.setBackground(edgeColor);
-    }
-
-    private void updateRouteColor() {
-        routeColor = chooseColor(routeColor, "dialog.config.routeColor");
-        routeColorButton.setBackground(routeColor);
-    }
-
-    private void updateOriginColor() {
-        originColor = chooseColor(originColor, "dialog.config.originColor");
-        originColorButton.setBackground(originColor);
-    }
-
-    private void updateDestinationColor() {
-        destinationColor = chooseColor(destinationColor, "dialog.config.destinationColor");
-        destinationColorButton.setBackground(destinationColor);
+    private Color updateColor(JButton button, String key) {
+        Color chosen = chooseColor(button.getBackground(), "dialog.config." + key);
+        button.setBackground(chosen);
+        return chosen;
     }
 
     private Color chooseColor(Color current, String titleKey) {
-        Color chosen = JColorChooser.showDialog(this, languageService.getText(titleKey), current);
+        Color chosen = JColorChooser.showDialog(this, context.languageService().getText(titleKey), current);
         return chosen == null ? current : chosen;
     }
 
     private JPanel createFormPanel() {
-        JPanel panel = new JPanel(new GridLayout(14, 1, 6, 6));
+        int gap = config().getInt("ui.dialogs.configGridGap");
+        JPanel panel = new JPanel(new GridLayout(0, 1, gap, gap));
+        addColorRows(panel);
+        addComboRows(panel);
+        return panel;
+    }
+
+    private void addColorRows(JPanel panel) {
         addColorRow(panel, "dialog.config.nodeColor", nodeColorButton);
         addColorRow(panel, "dialog.config.edgeColor", edgeColorButton);
         addColorRow(panel, "dialog.config.routeColor", routeColorButton);
         addColorRow(panel, "dialog.config.originColor", originColorButton);
         addColorRow(panel, "dialog.config.destinationColor", destinationColorButton);
+    }
+
+    private void addComboRows(JPanel panel) {
         addComboRow(panel, "dialog.config.nodeSize", nodeSizeCombo);
         addComboRow(panel, "dialog.config.strokeWidth", strokeWidthCombo);
-        return panel;
     }
 
     private void addColorRow(JPanel panel, String key, JButton button) {
@@ -154,28 +144,31 @@ public class ConfigDialog extends JDialog {
     }
 
     private void addLabel(JPanel panel, String key) {
-        panel.add(new JLabel(languageService.getText(key)));
+        panel.add(new JLabel(context.languageService().getText(key)));
     }
 
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        panel.add(createButton(languageService.getText("common.save"), true));
-        panel.add(createButton(languageService.getText("common.cancel"), false));
+        int padding = config().getInt("ui.dialogs.configButtonTopPadding");
+        panel.setBorder(BorderFactory.createEmptyBorder(padding, 0, 0, 0));
+        panel.add(createButton(context.languageService().getText("common.save"), true));
+        panel.add(createButton(context.languageService().getText("common.cancel"), false));
         return panel;
     }
 
     private JButton createButton(String text, boolean value) {
         JButton button = new JButton(text);
-        button.addActionListener(event -> {
-            confirmed = value;
-            dispose();
-        });
+        button.addActionListener(event -> confirm(value));
         return button;
     }
 
+    private void confirm(boolean value) {
+        confirmed = value;
+        dispose();
+    }
+
     public MapStyle buildStyle() {
-        MapStyle style = new MapStyle();
+        MapStyle style = new MapStyle(config());
         applySizes(style);
         applyColors(style);
         return style;
@@ -196,5 +189,13 @@ public class ConfigDialog extends JDialog {
 
     public boolean isConfirmed() {
         return confirmed;
+    }
+
+    private ConfigService config() {
+        return context.configService();
+    }
+
+    private DialogTheme theme() {
+        return context.theme();
     }
 }

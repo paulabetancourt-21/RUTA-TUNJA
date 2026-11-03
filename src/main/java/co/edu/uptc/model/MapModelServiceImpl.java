@@ -3,12 +3,13 @@ package co.edu.uptc.model;
 import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.i18n.LanguageService;
 import co.edu.uptc.persistence.CsvLoaderService;
-import co.edu.uptc.persistence.CsvLoaderServiceImpl;
+import co.edu.uptc.persistence.SavedRoutePersistenceException;
 import co.edu.uptc.persistence.SavedRouteService;
-import co.edu.uptc.persistence.SavedRouteServiceImpl;
 import co.edu.uptc.util.GeoUtil;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -19,25 +20,32 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MapModelServiceImpl implements MapModelService {
+
     private static final Logger LOGGER = Logger.getLogger(MapModelServiceImpl.class.getName());
+
     private final ConfigService configService;
     private final LanguageService languageService;
-    private final GraphService graphService = new GraphServiceImpl();
-    private final CsvLoaderService csvLoader = new CsvLoaderServiceImpl(graphService);
-    private final DijkstraService dijkstraService = new DijkstraServiceImpl(graphService);
-    private final RouteService routeService = new RouteServiceImpl();
+    private final GraphService graphService;
+    private final CsvLoaderService csvLoader;
+    private final DijkstraService dijkstraService;
+    private final RouteService routeService;
     private final SavedRouteService savedRouteService;
+    private final Deque<Graph> history = new ArrayDeque<>();
     private InteractionMode mode = InteractionMode.NONE;
     private Node pendingNode;
     private List<Node> currentRoute = new ArrayList<>();
     private double currentDistanceKm;
     private File activeFolder = null;
-    private final Deque<Graph> history = new ArrayDeque<>();
 
-    public MapModelServiceImpl(ConfigService configService, LanguageService languageService) {
+    public MapModelServiceImpl(ConfigService configService, LanguageService languageService,
+            ModelDependencies dependencies) {
         this.configService = configService;
         this.languageService = languageService;
-        this.savedRouteService = new SavedRouteServiceImpl(configService);
+        this.graphService = dependencies.graphService();
+        this.csvLoader = dependencies.csvLoader();
+        this.dijkstraService = dependencies.dijkstraService();
+        this.routeService = dependencies.routeService();
+        this.savedRouteService = dependencies.savedRouteService();
     }
 
     private Graph createGraphSnapshot() {
@@ -177,27 +185,23 @@ public class MapModelServiceImpl implements MapModelService {
     }
 
     private InteractionResult handleEdgeClick(Node node) {
-        if (node == null) {
+        if (node == null || isSameAsPending(node)) {
             return invalidNode();
         }
         if (pendingNode == null) {
             return selectPendingNode(node);
         }
-        return isSameAsPending(node)
-                ? invalidNode()
-                : InteractionResult.createEdge(pendingNode, node, distanceTo(pendingNode, node));
+        return InteractionResult.createEdge(pendingNode, node, distanceTo(pendingNode, node));
     }
 
     private InteractionResult handleRouteClick(Node node) {
-        if (node == null) {
+        if (node == null || isSameAsPending(node)) {
             return invalidNode();
         }
         if (pendingNode == null) {
             return selectPendingNode(node);
         }
-        return isSameAsPending(node)
-                ? invalidNode()
-                : InteractionResult.calculateRoute(pendingNode, node);
+        return InteractionResult.calculateRoute(pendingNode, node);
     }
 
     private InteractionResult selectPendingNode(Node node) {
@@ -242,9 +246,17 @@ public class MapModelServiceImpl implements MapModelService {
         List<Node> route = dijkstraService.calculateShortestPath(origin, destination);
         resetInteraction();
         if (route.isEmpty()) {
-            LOGGER.warning("No se encontró ruta entre los nodos " + origin.getId() + " y " + destination.getId());
-            return RouteResult.empty(languageService.getText("message.noRoute"));
+            return noRoute(origin, destination);
         }
+        return routeResult(route);
+    }
+
+    private RouteResult noRoute(Node origin, Node destination) {
+        LOGGER.warning("No se encontró ruta entre los nodos " + origin.getId() + " y " + destination.getId());
+        return RouteResult.empty(languageService.getText("message.noRoute"));
+    }
+
+    private RouteResult routeResult(List<Node> route) {
         rememberRoute(route);
         LOGGER.info("Ruta calculada con " + route.size() + " nodos");
         return RouteResult.route(route, buildRouteMessage(route));
@@ -254,12 +266,16 @@ public class MapModelServiceImpl implements MapModelService {
     public RouteResult resolveSavedRoute(SavedRoute savedRoute) {
         List<Node> route = toRouteNodes(savedRoute);
         if (route.size() < 2) {
-            LOGGER.warning("Ruta guardada no disponible: " + savedRoute.getName());
-            return RouteResult.empty(languageService.getText("status.savedRouteUnavailable"));
+            return unavailableSavedRoute(savedRoute);
         }
         rememberRoute(route);
         LOGGER.info("Ruta guardada cargada: " + savedRoute.getName());
         return RouteResult.route(route, buildRouteMessage(route));
+    }
+
+    private RouteResult unavailableSavedRoute(SavedRoute savedRoute) {
+        LOGGER.warning("Ruta guardada no disponible: " + savedRoute.getName());
+        return RouteResult.empty(languageService.getText("status.savedRouteUnavailable"));
     }
 
     private void rememberRoute(List<Node> route) {
@@ -331,13 +347,15 @@ public class MapModelServiceImpl implements MapModelService {
     }
 
     private File resolveNodesFile() {
-        File file = activeFolder != null ? new File(activeFolder, "nodes.csv")
-                : new File("src/main/resources/" + configService.getString("graph.nodesCsv"));
+        File file = activeFolder != null
+                ? new File(activeFolder, configService.getString("graph.nodesFileName"))
+                : new File(configService.getString("graph.resourcesBasePath") + configService.getString("graph.nodesCsv"));
         return file.exists() ? file : new File(configService.getString("graph.nodesCsv"));
     }
 
     private Node findNodeInFile(File file, int targetId) throws IOException {
-        for (String line : Files.readAllLines(file.toPath())) {
+        Charset charset = Charset.forName(configService.getString("graph.csvEncoding"));
+        for (String line : Files.readAllLines(file.toPath(), charset)) {
             Node node = parseNodeLine(line, targetId);
             if (node != null) {
                 return node;
@@ -347,9 +365,21 @@ public class MapModelServiceImpl implements MapModelService {
     }
 
     private Node parseNodeLine(String line, int targetId) {
-        String[] parts = line.split(",");
-        if (parts.length < 4 || parts[0].equals("id")) return null;
-        if (Integer.parseInt(parts[0].trim()) != targetId) return null;
+        String[] parts = line.split(configService.getString("graph.csvSeparator"), 4);
+        if (parts.length < 4 || isHeader(parts[0])) {
+            return null;
+        }
+        if (Integer.parseInt(parts[0].trim()) != targetId) {
+            return null;
+        }
+        return buildNode(targetId, parts);
+    }
+
+    private boolean isHeader(String value) {
+        return value.trim().equalsIgnoreCase(configService.getString("graph.nodesIdHeader"));
+    }
+
+    private Node buildNode(int targetId, String[] parts) {
         return new Node(targetId, parts[3].trim(), Double.parseDouble(parts[1].trim()),
                 Double.parseDouble(parts[2].trim()));
     }
@@ -364,9 +394,14 @@ public class MapModelServiceImpl implements MapModelService {
 
     @Override
     public String saveRoute(String name) {
-        savedRouteService.save(buildSavedRoute(name));
-        LOGGER.info("Ruta guardada con el nombre: " + name);
-        return languageService.getText("status.routeSaved");
+        try {
+            savedRouteService.save(buildSavedRoute(name));
+            LOGGER.info("Ruta guardada con el nombre: " + name);
+            return languageService.getText("status.routeSaved");
+        } catch (SavedRoutePersistenceException exception) {
+            LOGGER.log(Level.SEVERE, "No se pudo guardar la ruta " + name, exception);
+            return languageService.getText("status.routeSaveError");
+        }
     }
 
     private SavedRoute buildSavedRoute(String name) {
@@ -405,8 +440,8 @@ public class MapModelServiceImpl implements MapModelService {
         history.clear();
         this.activeFolder = folder;
         graphService.clearGraph();
-        csvLoader.loadNodes(new File(folder, "nodes.csv").getAbsolutePath());
-        csvLoader.loadEdges(new File(folder, "edges.csv").getAbsolutePath());
+        csvLoader.loadNodes(new File(folder, configService.getString("graph.nodesFileName")).getAbsolutePath());
+        csvLoader.loadEdges(new File(folder, configService.getString("graph.edgesFileName")).getAbsolutePath());
     }
 
     private GraphLoadResult externalLoadFailure(File folder, Exception exception) {
@@ -427,29 +462,40 @@ public class MapModelServiceImpl implements MapModelService {
     }
 
     private void writeGraphFiles(File folder) throws IOException {
+        Charset charset = Charset.forName(configService.getString("graph.csvEncoding"));
         Files.createDirectories(folder.toPath());
-        Files.write(new File(folder, "nodes.csv").toPath(), nodeLines());
-        Files.write(new File(folder, "edges.csv").toPath(), edgeLines());
+        Files.write(nodeFile(folder).toPath(), nodeLines(), charset);
+        Files.write(edgeFile(folder).toPath(), edgeLines(), charset);
+    }
+
+    private File nodeFile(File folder) {
+        return new File(folder, configService.getString("graph.nodesFileName"));
+    }
+
+    private File edgeFile(File folder) {
+        return new File(folder, configService.getString("graph.edgesFileName"));
     }
 
     private List<String> nodeLines() {
-        List<String> lines = new ArrayList<>(List.of("id,lat,lon,name"));
+        List<String> lines = new ArrayList<>(List.of(configService.getString("graph.nodesHeader")));
         graphService.getGraph().getNodes().values().forEach(node -> lines.add(toNodeLine(node)));
         return lines;
     }
 
     private String toNodeLine(Node node) {
-        return node.getId() + "," + node.getLat() + "," + node.getLon() + "," + node.getName();
+        String separator = configService.getString("graph.csvSeparator");
+        return node.getId() + separator + node.getLat() + separator + node.getLon() + separator + node.getName();
     }
 
     private List<String> edgeLines() {
-        List<String> lines = new ArrayList<>(List.of("fromId,toId,oneWay"));
+        List<String> lines = new ArrayList<>(List.of(configService.getString("graph.edgesHeader")));
         graphService.getGraph().getEdges().forEach(edge -> lines.add(toEdgeLine(edge)));
         return lines;
     }
 
     private String toEdgeLine(Edge edge) {
-        return edge.getSource().getId() + "," + edge.getDestination().getId() + "," + edge.isOneWay();
+        String separator = configService.getString("graph.csvSeparator");
+        return edge.getSource().getId() + separator + edge.getDestination().getId() + separator + edge.isOneWay();
     }
 
     @Override
@@ -468,11 +514,11 @@ public class MapModelServiceImpl implements MapModelService {
     public InteractionResult undo() {
         if (history.isEmpty()) {
             LOGGER.warning("No hay acciones para deshacer");
-            return InteractionResult.message("No hay acciones");
+            return InteractionResult.message(languageService.getText("status.noActions"));
         }
         restoreSnapshot(history.pop());
         LOGGER.info("Última acción deshecha");
-        return InteractionResult.message("Action undone");
+        return InteractionResult.message(languageService.getText("status.undo"));
     }
 
     private void restoreSnapshot(Graph snapshot) {

@@ -1,6 +1,9 @@
 package co.edu.uptc.view.route;
 
+import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.i18n.LanguageService;
+import co.edu.uptc.view.help.DialogContext;
+import co.edu.uptc.view.help.DialogTheme;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -15,45 +18,53 @@ import java.awt.GridLayout;
 
 public class SaveRouteDialog extends JDialog {
 
+    private final DialogContext context;
     private JTextField routeNameField;
     private JTextField routeInfoField;
     private boolean confirmed;
 
-    public SaveRouteDialog(JFrame parent, LanguageService languageService, String routeSummary) {
-        super(parent, languageService.getText("dialog.saveRoute.title"), true);
+    public SaveRouteDialog(JFrame parent, DialogContext context, String routeSummary) {
+        super(parent, context.languageService().getText("dialog.saveRoute.title"), true);
+        this.context = context;
         initDialog();
         initFields(routeSummary);
-        add(createFormPanel(languageService), BorderLayout.CENTER);
-        add(createButtonPanel(languageService), BorderLayout.SOUTH);
+        add(createFormPanel(), BorderLayout.CENTER);
+        add(createButtonPanel(), BorderLayout.SOUTH);
         pack();
         setLocationRelativeTo(parent);
     }
 
     private void initDialog() {
-        setLayout(new BorderLayout(10, 10));
-        ((JPanel) getContentPane()).setBorder(new EmptyBorder(16, 20, 16, 20));
+        int gap = config().getInt("ui.dialogs.contentGap");
+        setLayout(new BorderLayout(gap, gap));
+        ((JPanel) getContentPane()).setBorder(new EmptyBorder(theme().insets("ui.dialogs.routeContentBorder")));
     }
 
     private void initFields(String routeSummary) {
-        routeNameField = new JTextField(20);
-        routeInfoField = new JTextField(routeSummary, 20);
+        routeNameField = new JTextField(config().getInt("ui.dialogs.saveRouteFieldColumns"));
+        routeInfoField = new JTextField(routeSummary, config().getInt("ui.dialogs.saveRouteFieldColumns"));
         routeInfoField.setEnabled(false);
     }
 
-    private JPanel createFormPanel(LanguageService languageService) {
-        JPanel panel = new JPanel(new GridLayout(4, 1, 6, 6));
-        panel.add(new JLabel(languageService.getText("dialog.saveRoute.name") + ":"));
-        panel.add(routeNameField);
-        panel.add(new JLabel(languageService.getText("dialog.saveRoute.summary") + ":"));
-        panel.add(routeInfoField);
+    private JPanel createFormPanel() {
+        int gap = config().getInt("ui.dialogs.formRowGap");
+        JPanel panel = new JPanel(new GridLayout(0, 1, gap, gap));
+        addLabeledField(panel, "dialog.saveRoute.name", routeNameField);
+        addLabeledField(panel, "dialog.saveRoute.summary", routeInfoField);
         return panel;
     }
 
-    private JPanel createButtonPanel(LanguageService languageService) {
+    private void addLabeledField(JPanel panel, String key, JTextField field) {
+        panel.add(new JLabel(languageService().getText(key) + ":"));
+        panel.add(field);
+    }
+
+    private JPanel createButtonPanel() {
         JPanel panel = new JPanel();
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        panel.add(createButton(languageService.getText("common.save"), true));
-        panel.add(createButton(languageService.getText("common.cancel"), false));
+        int padding = config().getInt("ui.dialogs.configButtonTopPadding");
+        panel.setBorder(BorderFactory.createEmptyBorder(padding, 0, 0, 0));
+        panel.add(createButton(languageService().getText("common.save"), true));
+        panel.add(createButton(languageService().getText("common.cancel"), false));
         return panel;
     }
 
@@ -77,5 +88,17 @@ public class SaveRouteDialog extends JDialog {
 
     public String getRouteName() {
         return routeNameField.getText().trim();
+    }
+
+    private LanguageService languageService() {
+        return context.languageService();
+    }
+
+    private ConfigService config() {
+        return context.configService();
+    }
+
+    private DialogTheme theme() {
+        return context.theme();
     }
 }

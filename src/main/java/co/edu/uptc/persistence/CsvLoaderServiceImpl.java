@@ -1,5 +1,6 @@
 package co.edu.uptc.persistence;
 
+import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.model.Edge;
 import co.edu.uptc.model.GraphService;
 import co.edu.uptc.model.Node;
@@ -9,7 +10,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.logging.Level;
@@ -19,9 +20,11 @@ import java.util.stream.Stream;
 public class CsvLoaderServiceImpl implements CsvLoaderService {
 
     private static final Logger LOGGER = Logger.getLogger(CsvLoaderServiceImpl.class.getName());
+    private final ConfigService configService;
     private final GraphService graphService;
 
-    public CsvLoaderServiceImpl(GraphService graphService) {
+    public CsvLoaderServiceImpl(ConfigService configService, GraphService graphService) {
+        this.configService = configService;
         this.graphService = graphService;
     }
 
@@ -29,7 +32,7 @@ public class CsvLoaderServiceImpl implements CsvLoaderService {
     public void loadNodes(String filePath) throws IOException {
         LOGGER.info("Cargando nodos desde: " + filePath);
         try (Stream<String> lines = readLines(filePath)) {
-            lines.skip(1).forEach(this::parseAndAddNode);
+            lines.skip(headerLines()).forEach(this::parseAndAddNode);
         } catch (IOException | RuntimeException exception) {
             LOGGER.log(Level.SEVERE, "Error al cargar nodos desde " + filePath, exception);
             throw exception;
@@ -40,7 +43,7 @@ public class CsvLoaderServiceImpl implements CsvLoaderService {
     public void loadEdges(String filePath) throws IOException {
         LOGGER.info("Cargando aristas desde: " + filePath);
         try (Stream<String> lines = readLines(filePath)) {
-            lines.skip(1).forEach(this::parseAndAddEdge);
+            lines.skip(headerLines()).forEach(this::parseAndAddEdge);
         } catch (IOException | RuntimeException exception) {
             LOGGER.log(Level.SEVERE, "Error al cargar aristas desde " + filePath, exception);
             throw exception;
@@ -48,18 +51,31 @@ public class CsvLoaderServiceImpl implements CsvLoaderService {
     }
 
     private Stream<String> readLines(String filePath) throws IOException {
+        Charset charset = Charset.forName(configService.getString("graph.csvEncoding"));
         InputStream stream = getClass().getClassLoader().getResourceAsStream(filePath);
         if (stream != null) {
-            return new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8)).lines();
+            return new BufferedReader(new InputStreamReader(stream, charset)).lines();
         }
-        return Files.lines(Paths.get(filePath), StandardCharsets.UTF_8);
+        return Files.lines(Paths.get(filePath), charset);
+    }
+
+    private int headerLines() {
+        return configService.getInt("graph.csvHeaderLines");
+    }
+
+    private String separator() {
+        return configService.getString("graph.csvSeparator");
     }
 
     private void parseAndAddNode(String line) {
-        String[] parts = line.split(",", 4);
+        String[] parts = line.split(separator(), 4);
         if (parts.length < 3) {
             return;
         }
+        addNode(parts);
+    }
+
+    private void addNode(String[] parts) {
         int id = Integer.parseInt(parts[0].trim());
         double lat = Double.parseDouble(parts[1].trim());
         double lon = Double.parseDouble(parts[2].trim());
@@ -68,10 +84,14 @@ public class CsvLoaderServiceImpl implements CsvLoaderService {
     }
 
     private void parseAndAddEdge(String line) {
-        String[] parts = line.split(",");
+        String[] parts = line.split(separator());
         if (parts.length < 3) {
             return;
         }
+        addEdge(parts);
+    }
+
+    private void addEdge(String[] parts) {
         int fromId = Integer.parseInt(parts[0].trim());
         int toId = Integer.parseInt(parts[1].trim());
         boolean oneWay = Boolean.parseBoolean(parts[2].trim());

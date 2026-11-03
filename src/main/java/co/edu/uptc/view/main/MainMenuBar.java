@@ -1,5 +1,6 @@
 package co.edu.uptc.view.main;
 
+import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.i18n.LanguageService;
 import co.edu.uptc.model.SavedRoute;
 import co.edu.uptc.presenter.MapPresenter;
@@ -16,10 +17,12 @@ public class MainMenuBar extends JMenuBar {
 
     private final LanguageService languageService;
     private final MapPresenter presenter;
+    private final ConfigService configService;
 
-    public MainMenuBar(LanguageService languageService, MapPresenter presenter) {
+    public MainMenuBar(LanguageService languageService, MapPresenter presenter, ConfigService configService) {
         this.languageService = languageService;
         this.presenter = presenter;
+        this.configService = configService;
         initMenus();
     }
 
@@ -32,16 +35,16 @@ public class MainMenuBar extends JMenuBar {
 
     private void buildViaMenu() {
         JMenu menu = createMenu("menu.via", KeyEvent.VK_V);
-        addItem(menu, "menu.createNode", KeyEvent.VK_N, ctrl(KeyEvent.VK_N), event -> presenter.startCreateNode());
-        addItem(menu, "menu.createEdge", KeyEvent.VK_E, ctrl(KeyEvent.VK_E), event -> presenter.startCreateEdge());
+        addItem(menu, entry("menu.createNode").mnemonic(KeyEvent.VK_N).accelerator(ctrl(KeyEvent.VK_N)).action(event -> presenter.startCreateNode()));
+        addItem(menu, entry("menu.createEdge").mnemonic(KeyEvent.VK_E).accelerator(ctrl(KeyEvent.VK_E)).action(event -> presenter.startCreateEdge()));
         add(menu);
     }
 
     private void buildRouteMenu() {
         JMenu menu = createMenu("menu.route", KeyEvent.VK_R);
-        addItem(menu, "menu.calculateRoute", KeyEvent.VK_C, ctrl(KeyEvent.VK_R), event -> presenter.startCalculateRoute());
-        addItem(menu, "menu.saveRoute", KeyEvent.VK_G, ctrl(KeyEvent.VK_G), event -> presenter.openSaveRouteDialog());
-        addItem(menu, "menu.clearRoute", KeyEvent.VK_L, ctrl(KeyEvent.VK_L), event -> presenter.clearRoute());
+        addItem(menu, entry("menu.calculateRoute").mnemonic(KeyEvent.VK_C).accelerator(ctrl(KeyEvent.VK_R)).action(event -> presenter.startCalculateRoute()));
+        addItem(menu, entry("menu.saveRoute").mnemonic(KeyEvent.VK_G).accelerator(ctrl(KeyEvent.VK_G)).action(event -> presenter.openSaveRouteDialog()));
+        addItem(menu, entry("menu.clearRoute").mnemonic(KeyEvent.VK_L).accelerator(ctrl(KeyEvent.VK_L)).action(event -> presenter.clearRoute()));
         add(menu);
     }
 
@@ -50,7 +53,7 @@ public class MainMenuBar extends JMenuBar {
         addBasicOptionsItems(menu);
         menu.add(buildZoomSubMenu());
         menu.add(buildSavedRoutesMenu());
-        addItem(menu, "menu.exit", KeyEvent.VK_Q, ctrl(KeyEvent.VK_Q), event -> System.exit(0));
+        addItem(menu, entry("menu.exit").mnemonic(KeyEvent.VK_Q).accelerator(ctrl(KeyEvent.VK_Q)).action(event -> presenter.exitApplication()));
         add(menu);
     }
 
@@ -79,26 +82,26 @@ public class MainMenuBar extends JMenuBar {
     }
 
     private void addBasicOptionsItems(JMenu menu) {
-        addItem(menu, "menu.newGraph", KeyEvent.VK_U, ctrlShift(KeyEvent.VK_N), event -> presenter.resetGraph());
-        addItem(menu, "menu.open", KeyEvent.VK_A, ctrl(KeyEvent.VK_O), event -> presenter.openGraphDialog());
-        addItem(menu, "menu.save", KeyEvent.VK_S, ctrl(KeyEvent.VK_S), event -> presenter.saveGraph());
-        addItem(menu, "menu.undo", KeyEvent.VK_Z, ctrl(KeyEvent.VK_Z), event -> presenter.undo());
+        addItem(menu, entry("menu.newGraph").mnemonic(KeyEvent.VK_U).accelerator(ctrlShift(KeyEvent.VK_N)).action(event -> presenter.resetGraph()));
+        addItem(menu, entry("menu.open").mnemonic(KeyEvent.VK_A).accelerator(ctrl(KeyEvent.VK_O)).action(event -> presenter.openGraphDialog()));
+        addItem(menu, entry("menu.save").mnemonic(KeyEvent.VK_S).accelerator(ctrl(KeyEvent.VK_S)).action(event -> presenter.saveGraph()));
+        addItem(menu, entry("menu.undo").mnemonic(KeyEvent.VK_Z).accelerator(ctrl(KeyEvent.VK_Z)).action(event -> presenter.undo()));
     }
 
     private JMenu buildZoomSubMenu() {
         JMenu zoomMenu = createMenu("menu.zoom", KeyEvent.VK_Z);
-        addItem(zoomMenu, "menu.zoomIn", KeyEvent.VK_A, ctrl(KeyEvent.VK_PLUS), event -> presenter.zoomIn());
-        addItem(zoomMenu, "menu.zoomOut", KeyEvent.VK_L, ctrl(KeyEvent.VK_MINUS), event -> presenter.zoomOut());
-        addItem(zoomMenu, "menu.originalSize", KeyEvent.VK_T, ctrl(KeyEvent.VK_0), event -> presenter.resetZoom());
+        addItem(zoomMenu, entry("menu.zoomIn").mnemonic(KeyEvent.VK_A).accelerator(ctrl(KeyEvent.VK_PLUS)).action(event -> presenter.zoomIn()));
+        addItem(zoomMenu, entry("menu.zoomOut").mnemonic(KeyEvent.VK_L).accelerator(ctrl(KeyEvent.VK_MINUS)).action(event -> presenter.zoomOut()));
+        addItem(zoomMenu, entry("menu.originalSize").mnemonic(KeyEvent.VK_T).accelerator(ctrl(KeyEvent.VK_0)).action(event -> presenter.resetZoom()));
         return zoomMenu;
     }
 
     private void buildHelpMenu() {
         JMenu menu = createMenu("menu.help", KeyEvent.VK_A);
-        addItem(menu, "menu.configuration", KeyEvent.VK_C, ctrlAlt(KeyEvent.VK_S), event -> presenter.openConfigDialog());
+        addItem(menu, entry("menu.configuration").mnemonic(KeyEvent.VK_C).accelerator(ctrlAlt(KeyEvent.VK_S)).action(event -> presenter.openConfigDialog()));
         menu.add(buildLanguageSubMenu());
-        addItem(menu, "menu.howItWorks", KeyEvent.VK_H, KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), event -> presenter.openHowItWorksDialog());
-        addItem(menu, "menu.about", KeyEvent.VK_I, ctrl(KeyEvent.VK_I), event -> presenter.openAboutDialog());
+        addItem(menu, entry("menu.howItWorks").mnemonic(KeyEvent.VK_H).accelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0)).action(event -> presenter.openHowItWorksDialog()));
+        addItem(menu, entry("menu.about").mnemonic(KeyEvent.VK_I).accelerator(ctrl(KeyEvent.VK_I)).action(event -> presenter.openAboutDialog()));
         add(menu);
     }
 
@@ -108,23 +111,20 @@ public class MainMenuBar extends JMenuBar {
         for (int index = 0; index < languages.size(); index++) {
             addLanguageItem(langMenu, languages.get(index), index);
         }
-        addItem(langMenu, "menu.loadLanguage", KeyEvent.VK_C, ctrlShift(KeyEvent.VK_I), event -> presenter.openLoadLanguageDialog());
+        addItem(langMenu, entry("menu.loadLanguage").mnemonic(KeyEvent.VK_C).accelerator(ctrlShift(KeyEvent.VK_I)).action(event -> presenter.openLoadLanguageDialog()));
         return langMenu;
     }
 
     private void addLanguageItem(JMenu menu, String languageCode, int index) {
-        JMenuItem item = new JMenuItem(languageLabel(languageCode));
+        JMenuItem item = new JMenuItem(languageService.getLanguageName(languageCode));
         item.setAccelerator(languageAccelerator(index));
         item.addActionListener(event -> presenter.changeLanguage(languageCode));
         menu.add(item);
     }
 
-    private String languageLabel(String languageCode) {
-        return languageService.getLanguageName(languageCode);
-    }
-
     private KeyStroke languageAccelerator(int index) {
-        if (index < 0 || index > 8) {
+        int limit = configService.getInt("ui.menu.maxLanguageAccelerators");
+        if (index < 0 || index > limit) {
             return null;
         }
         return ctrlAlt(KeyEvent.VK_1 + index);
@@ -136,12 +136,16 @@ public class MainMenuBar extends JMenuBar {
         return menu;
     }
 
-    private void addItem(JMenu parent, String textKey, int mnemonic, KeyStroke accelerator, ActionListener listener) {
-        JMenuItem item = new JMenuItem(languageService.getText(textKey));
-        item.setMnemonic(mnemonic);
-        item.setAccelerator(accelerator);
-        item.addActionListener(listener);
+    private void addItem(JMenu parent, MenuEntry entry) {
+        JMenuItem item = new JMenuItem(languageService.getText(entry.textKey));
+        item.setMnemonic(entry.mnemonic);
+        item.setAccelerator(entry.accelerator);
+        item.addActionListener(entry.listener);
         parent.add(item);
+    }
+
+    private MenuEntry entry(String textKey) {
+        return new MenuEntry(textKey);
     }
 
     private KeyStroke ctrl(int keyCode) {
@@ -154,5 +158,31 @@ public class MainMenuBar extends JMenuBar {
 
     private KeyStroke ctrlAlt(int keyCode) {
         return KeyStroke.getKeyStroke(keyCode, KeyEvent.CTRL_DOWN_MASK | KeyEvent.ALT_DOWN_MASK);
+    }
+
+    private static final class MenuEntry {
+        private final String textKey;
+        private int mnemonic;
+        private KeyStroke accelerator;
+        private ActionListener listener;
+
+        private MenuEntry(String textKey) {
+            this.textKey = textKey;
+        }
+
+        private MenuEntry mnemonic(int value) {
+            this.mnemonic = value;
+            return this;
+        }
+
+        private MenuEntry accelerator(KeyStroke value) {
+            this.accelerator = value;
+            return this;
+        }
+
+        private MenuEntry action(ActionListener value) {
+            this.listener = value;
+            return this;
+        }
     }
 }

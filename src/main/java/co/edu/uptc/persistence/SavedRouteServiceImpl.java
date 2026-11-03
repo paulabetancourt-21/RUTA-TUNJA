@@ -4,7 +4,7 @@ import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.model.SavedRoute;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,18 +13,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SavedRouteServiceImpl implements SavedRouteService {
 
-    private static final String SEPARATOR = "\t";
     private static final Logger LOGGER = Logger.getLogger(SavedRouteServiceImpl.class.getName());
 
     private final Path filePath;
+    private final String fieldSeparator;
+    private final String nodeIdSeparator;
+    private final Charset charset;
     private final List<SavedRoute> routes;
 
     public SavedRouteServiceImpl(ConfigService configService) {
         this.filePath = Paths.get(configService.getString("routes.savedFile"));
+        this.fieldSeparator = configService.getString("routes.fieldSeparator");
+        this.nodeIdSeparator = configService.getString("routes.nodeIdSeparator");
+        this.charset = Charset.forName(configService.getString("routes.encoding"));
         this.routes = new ArrayList<>();
         load();
     }
@@ -40,7 +46,16 @@ public class SavedRouteServiceImpl implements SavedRouteService {
             return;
         }
         routes.add(route);
-        persist();
+        persistSafely(route);
+    }
+
+    private void persistSafely(SavedRoute route) {
+        try {
+            persist();
+        } catch (SavedRoutePersistenceException exception) {
+            routes.remove(route);
+            throw exception;
+        }
     }
 
     private void load() {
@@ -53,7 +68,7 @@ public class SavedRouteServiceImpl implements SavedRouteService {
 
     private void readSavedRoutes() {
         try {
-            Files.readAllLines(filePath, StandardCharsets.UTF_8).forEach(this::addFromLine);
+            Files.readAllLines(filePath, charset).forEach(this::addFromLine);
             LOGGER.info("Rutas guardadas cargadas: " + routes.size() + " desde " + filePath);
         } catch (IOException exception) {
             LOGGER.log(Level.SEVERE, "Error al cargar rutas guardadas desde " + filePath, exception);
@@ -62,7 +77,7 @@ public class SavedRouteServiceImpl implements SavedRouteService {
     }
 
     private void addFromLine(String line) {
-        String[] parts = line.split(SEPARATOR);
+        String[] parts = line.split(Pattern.quote(fieldSeparator));
         if (parts.length < 3) {
             return;
         }
@@ -87,7 +102,7 @@ public class SavedRouteServiceImpl implements SavedRouteService {
     }
 
     private List<Integer> parseIds(String text) {
-        return Arrays.stream(text.split(","))
+        return Arrays.stream(text.split(Pattern.quote(nodeIdSeparator)))
                 .filter(id -> !id.isBlank())
                 .map(Integer::parseInt)
                 .toList();
@@ -96,10 +111,11 @@ public class SavedRouteServiceImpl implements SavedRouteService {
     private void persist() {
         try {
             createParentDirectory();
-            Files.write(filePath, toLines(), StandardCharsets.UTF_8);
+            Files.write(filePath, toLines(), charset);
             LOGGER.info("Rutas guardadas en: " + filePath);
         } catch (IOException exception) {
             LOGGER.log(Level.SEVERE, "Error al guardar rutas en " + filePath, exception);
+            throw new SavedRoutePersistenceException("No se pudieron guardar las rutas", exception);
         }
     }
 
@@ -117,11 +133,11 @@ public class SavedRouteServiceImpl implements SavedRouteService {
     private String toLine(SavedRoute route) {
         String nodeIds = route.getNodeIds().stream()
                 .map(String::valueOf)
-                .collect(Collectors.joining(","));
-        return sanitize(route.getName()) + SEPARATOR + nodeIds + SEPARATOR + route.getDistanceKm();
+                .collect(Collectors.joining(nodeIdSeparator));
+        return sanitize(route.getName()) + fieldSeparator + nodeIds + fieldSeparator + route.getDistanceKm();
     }
 
     private String sanitize(String name) {
-        return name.replace(SEPARATOR, " ").replace("\n", " ").replace("\r", " ");
+        return name.replace(fieldSeparator, " ").replace("\n", " ").replace("\r", " ");
     }
 }

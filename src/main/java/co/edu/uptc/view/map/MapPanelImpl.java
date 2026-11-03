@@ -5,6 +5,7 @@ import co.edu.uptc.i18n.LanguageService;
 import co.edu.uptc.model.Edge;
 import co.edu.uptc.model.Graph;
 import co.edu.uptc.model.Node;
+import co.edu.uptc.util.ColorUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -30,13 +31,6 @@ import java.util.logging.Logger;
 public class MapPanelImpl extends JPanel implements MapPanel {
 
     private static final Logger LOGGER = Logger.getLogger(MapPanelImpl.class.getName());
-    private static final double MIN_ZOOM = 0.1;
-    private static final double MAX_ZOOM = 20.0;
-    private static final double ARROW_ANGLE = Math.toRadians(28);
-    private static final double ARROW_FACTOR = 1.8;
-    private static final float MIN_STROKE = 1.0f;
-    private static final int MIN_NODE_DIAMETER = 6;
-    private static final int SELECTION_FACTOR = 3;
 
     private final ConfigService configService;
     private final LanguageService languageService;
@@ -46,20 +40,53 @@ public class MapPanelImpl extends JPanel implements MapPanel {
     private MapStyle style;
     private MapClickListener clickListener;
     private Node selectedNode;
-    private double zoomFactor = 1.0;
+    private double zoomFactor;
     private int nodeClickTolerance;
-    private boolean initialFitDone = false;
+    private boolean initialFitDone;
+    private double minZoom;
+    private double maxZoom;
+    private double arrowAngle;
+    private double arrowFactor;
+    private float minStroke;
+    private int minNodeDiameter;
+    private int selectionFactor;
+    private double minArrowLength;
 
     public MapPanelImpl(ConfigService configService, LanguageService languageService) {
         this.configService = configService;
         this.languageService = languageService;
-        this.style = new MapStyle();
+        initConfig();
+        this.style = new MapStyle(configService);
         this.route = new ArrayList<>();
-        this.nodeClickTolerance = configService.getInt("tolerance.clickRadiusPx");
         loadMapImage();
         initMouseListener();
         initComponentListener();
-        setBackground(new Color(245, 245, 245));
+    }
+
+    private void initConfig() {
+        initZoom();
+        initDrawing();
+        initAppearance();
+    }
+
+    private void initZoom() {
+        this.nodeClickTolerance = configService.getInt("tolerance.clickRadiusPx");
+        this.zoomFactor = configService.getDouble("ui.initialZoom");
+        this.minZoom = configService.getDouble("ui.map.minZoom");
+        this.maxZoom = configService.getDouble("ui.map.maxZoom");
+    }
+
+    private void initDrawing() {
+        this.arrowAngle = Math.toRadians(configService.getDouble("ui.map.arrowAngleDegrees"));
+        this.arrowFactor = configService.getDouble("ui.map.arrowFactor");
+        this.minStroke = (float) configService.getDouble("ui.map.minStroke");
+        this.minNodeDiameter = configService.getInt("ui.map.minNodeDiameter");
+        this.selectionFactor = configService.getInt("ui.map.selectionFactor");
+        this.minArrowLength = configService.getDouble("ui.map.minArrowLength");
+    }
+
+    private void initAppearance() {
+        setBackground(ColorUtil.fromHex(configService.getString("ui.map.background")));
     }
 
     private void loadMapImage() {
@@ -123,6 +150,10 @@ public class MapPanelImpl extends JPanel implements MapPanel {
         if (graph == null || graph.getNodes() == null) {
             return null;
         }
+        return findMatchingNode(pixelX, pixelY);
+    }
+
+    private Node findMatchingNode(int pixelX, int pixelY) {
         for (Node node : graph.getNodes().values()) {
             if (isInsideTolerance(node, pixelX, pixelY)) {
                 return node;
@@ -172,7 +203,15 @@ public class MapPanelImpl extends JPanel implements MapPanel {
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
         Graphics2D g2d = (Graphics2D) graphics;
+        applyQuality(g2d);
+        drawLayers(g2d);
+    }
+
+    private void applyQuality(Graphics2D g2d) {
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+    }
+
+    private void drawLayers(Graphics2D g2d) {
         drawMapImage(g2d);
         drawEdges(g2d);
         drawRoute(g2d);
@@ -211,12 +250,11 @@ public class MapPanelImpl extends JPanel implements MapPanel {
     private void drawArrow(Graphics2D g2d, Point source, Point destination) {
         double angle = Math.atan2(destination.y - source.y, destination.x - source.x);
         Point tip = move(destination, angle + Math.PI, scaledNodeDiameter() / 2.0);
-        drawArrowSide(g2d, tip, angle, 1);
-        drawArrowSide(g2d, tip, angle, -1);
+        drawArrowSide(g2d, tip, angle + Math.PI + arrowAngle);
+        drawArrowSide(g2d, tip, angle + Math.PI - arrowAngle);
     }
 
-    private void drawArrowSide(Graphics2D g2d, Point tip, double angle, int sign) {
-        double sideAngle = angle + Math.PI + sign * ARROW_ANGLE;
+    private void drawArrowSide(Graphics2D g2d, Point tip, double sideAngle) {
         Point end = move(tip, sideAngle, scaledArrowLength());
         g2d.drawLine(tip.x, tip.y, end.x, end.y);
     }
@@ -260,10 +298,11 @@ public class MapPanelImpl extends JPanel implements MapPanel {
         int diameter = scaledNodeDiameter();
         g2d.setColor(style.getNodeColor());
         g2d.fillOval(point.x - diameter / 2, point.y - diameter / 2, diameter, diameter);
-        drawNodeLabel(g2d, node, point, diameter);
+        drawNodeLabel(g2d, node, point);
     }
 
-    private void drawNodeLabel(Graphics2D g2d, Node node, Point point, int diameter) {
+    private void drawNodeLabel(Graphics2D g2d, Node node, Point point) {
+        int diameter = scaledNodeDiameter();
         g2d.setColor(style.getLabelColor());
         g2d.drawString(nodeLabel(node), point.x + diameter, point.y - diameter);
     }
@@ -296,7 +335,7 @@ public class MapPanelImpl extends JPanel implements MapPanel {
             return;
         }
         Point point = toPixel(selectedNode);
-        int diameter = scaledNodeDiameter() * SELECTION_FACTOR;
+        int diameter = scaledNodeDiameter() * selectionFactor;
         g2d.setColor(style.getRouteColor());
         g2d.setStroke(createStroke(style.getEdgeWidth()));
         g2d.drawOval(point.x - diameter / 2, point.y - diameter / 2, diameter, diameter);
@@ -307,15 +346,15 @@ public class MapPanelImpl extends JPanel implements MapPanel {
     }
 
     private int scaledNodeDiameter() {
-        return Math.max(MIN_NODE_DIAMETER, (int) Math.round(style.getNodeDiameter() * zoomFactor));
+        return Math.max(minNodeDiameter, (int) Math.round(style.getNodeDiameter() * zoomFactor));
     }
 
     private float scaledStroke(float baseWidth) {
-        return Math.max(MIN_STROKE, (float) (baseWidth * zoomFactor));
+        return Math.max(minStroke, (float) (baseWidth * zoomFactor));
     }
 
     private double scaledArrowLength() {
-        return Math.max(4.0, style.getNodeDiameter() * ARROW_FACTOR * zoomFactor);
+        return Math.max(minArrowLength, style.getNodeDiameter() * arrowFactor * zoomFactor);
     }
 
     private void updatePreferredSize() {
@@ -344,7 +383,7 @@ public class MapPanelImpl extends JPanel implements MapPanel {
 
     @Override
     public void setStyle(MapStyle style) {
-        this.style = style == null ? new MapStyle() : style;
+        this.style = style == null ? new MapStyle(configService) : style;
         repaint();
     }
 
@@ -372,7 +411,7 @@ public class MapPanelImpl extends JPanel implements MapPanel {
     }
 
     private double clampZoom(double zoomFactor) {
-        return Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomFactor));
+        return Math.max(minZoom, Math.min(maxZoom, zoomFactor));
     }
 
     @Override

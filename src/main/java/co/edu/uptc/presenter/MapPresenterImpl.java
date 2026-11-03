@@ -1,5 +1,6 @@
 package co.edu.uptc.presenter;
 
+import co.edu.uptc.i18n.LanguageService;
 import co.edu.uptc.model.GraphLoadResult;
 import co.edu.uptc.model.InteractionResult;
 import co.edu.uptc.model.MapModelService;
@@ -15,10 +16,12 @@ public class MapPresenterImpl implements MapPresenter {
 
     private final MapView view;
     private final MapModelService model;
+    private final LanguageService languageService;
 
-    public MapPresenterImpl(MapView view, MapModelService model) {
+    public MapPresenterImpl(MapView view, MapModelService model, LanguageService languageService) {
         this.view = view;
         this.model = model;
+        this.languageService = languageService;
     }
 
     @Override
@@ -112,15 +115,15 @@ public class MapPresenterImpl implements MapPresenter {
         if (model.saveGraph()) {
             view.showGraphSaved();
         } else {
-            view.updateStatusMessage("Error al guardar");
+            view.updateStatusMessage(languageService.getText("status.graphSaveError"));
         }
     }
+
     @Override
-        public void undo() {
-            InteractionResult res = model.undo();
-            view.updateStatusMessage(res.toString());
-            view.showGraphLoad(new GraphLoadResult(model.getGraph(), "Acción deshecha"));
-        }
+    public void undo() {
+        InteractionResult result = model.undo();
+        view.showGraphLoad(new GraphLoadResult(model.getGraph(), result.message()));
+    }
 
     @Override
     public void zoomIn() {
@@ -177,5 +180,8 @@ public class MapPresenterImpl implements MapPresenter {
         view.showGraphLoad(model.loadExternalGraph(folder));
     }
 
-
+    @Override
+    public void exitApplication() {
+        view.closeApplication();
+    }
 }

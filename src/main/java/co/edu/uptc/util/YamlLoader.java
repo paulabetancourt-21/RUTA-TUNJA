@@ -28,6 +28,10 @@ public class YamlLoader {
             LOGGER.warning("No existe el archivo YAML: " + file);
             return emptyMap();
         }
+        return readFile(file);
+    }
+
+    private Map<String, Object> readFile(File file) {
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
             return loadFromStream(fileInputStream);
         } catch (Exception exception) {

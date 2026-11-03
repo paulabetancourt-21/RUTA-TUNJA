@@ -68,6 +68,9 @@ status:
   invalidNode: "Click on a valid node."
   graphLoadError: "The graph could not be loaded."
   actionCancelled: "Action cancelled."
+  noActions: "There are no actions to undo."
+  graphSaveError: "The graph could not be saved."
+  routeSaveError: "The route could not be saved."
 
 message:
   samePoint: "Origin and destination are the same point"

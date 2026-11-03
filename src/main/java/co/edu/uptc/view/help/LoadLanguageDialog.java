@@ -1,5 +1,6 @@
 package co.edu.uptc.view.help;
 
+import co.edu.uptc.config.ConfigService;
 import co.edu.uptc.i18n.LanguageService;
 
 import javax.swing.JButton;
@@ -17,7 +18,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,17 +26,16 @@ import java.util.logging.Logger;
 public class LoadLanguageDialog extends JDialog {
 
     private static final Logger LOGGER = Logger.getLogger(LoadLanguageDialog.class.getName());
-    private final LanguageService languageService;
+    private final DialogContext context;
     private JTextField languageCodeField;
     private JTextArea yamlArea;
     private File selectedFile;
     private String loadedLanguageCode;
 
-    public LoadLanguageDialog(JFrame parent, LanguageService languageService) {
-        super(parent, languageService.getText("dialog.loadLanguage.title"), true);
-        this.languageService = languageService;
-        setLayout(new BorderLayout(10, 10));
-        ((JPanel) getContentPane()).setBorder(new EmptyBorder(14, 18, 14, 18));
+    public LoadLanguageDialog(JFrame parent, DialogContext context) {
+        super(parent, context.languageService().getText("dialog.loadLanguage.title"), true);
+        this.context = context;
+        initDialog();
         add(createCodePanel(), BorderLayout.NORTH);
         add(createYamlPanel(), BorderLayout.CENTER);
         add(createButtonPanel(), BorderLayout.SOUTH);
@@ -43,16 +43,25 @@ public class LoadLanguageDialog extends JDialog {
         setLocationRelativeTo(parent);
     }
 
+    private void initDialog() {
+        int gap = config().getInt("ui.dialogs.contentGap");
+        setLayout(new BorderLayout(gap, gap));
+        ((JPanel) getContentPane()).setBorder(new EmptyBorder(theme().insets("ui.dialogs.loadLanguageInsets")));
+    }
+
     private JPanel createCodePanel() {
         JPanel panel = new JPanel(new BorderLayout(6, 6));
-        panel.add(new JLabel(languageService.getText("dialog.loadLanguage.code") + ":"), BorderLayout.NORTH);
-        languageCodeField = new JTextField(15);
+        String label = languageService().getText("dialog.loadLanguage.code") + ":";
+        panel.add(new JLabel(label), BorderLayout.NORTH);
+        languageCodeField = new JTextField(config().getInt("ui.dialogs.languageCodeColumns"));
         panel.add(languageCodeField, BorderLayout.SOUTH);
         return panel;
     }
 
     private JScrollPane createYamlPanel() {
-        yamlArea = new JTextArea(8, 25);
+        int rows = config().getInt("ui.dialogs.textAreaRows");
+        int columns = config().getInt("ui.dialogs.textAreaColumns");
+        yamlArea = new JTextArea(rows, columns);
         yamlArea.setEditable(false);
         yamlArea.setLineWrap(true);
         return new JScrollPane(yamlArea);
@@ -60,9 +69,9 @@ public class LoadLanguageDialog extends JDialog {
 
     private JPanel createButtonPanel() {
         JPanel panel = new JPanel();
-        panel.add(createButton(languageService.getText("dialog.loadLanguage.fromFile"), e -> selectFile()));
-        panel.add(createButton(languageService.getText("dialog.loadLanguage.add"), e -> addLanguage()));
-        panel.add(createButton(languageService.getText("common.cancel"), e -> dispose()));
+        panel.add(createButton(languageService().getText("dialog.loadLanguage.fromFile"), e -> selectFile()));
+        panel.add(createButton(languageService().getText("dialog.loadLanguage.add"), e -> addLanguage()));
+        panel.add(createButton(languageService().getText("common.cancel"), e -> dispose()));
         return panel;
     }
 
@@ -82,8 +91,9 @@ public class LoadLanguageDialog extends JDialog {
     }
 
     private FileNameExtensionFilter createFilter() {
-        String text = languageService.getText("dialog.loadLanguage.filter");
-        return new FileNameExtensionFilter(text, "yml");
+        String text = languageService().getText("dialog.loadLanguage.filter");
+        String extension = config().getString("files.i18nFilterExtension");
+        return new FileNameExtensionFilter(text, extension);
     }
 
     private void applyFile(File file) {
@@ -101,7 +111,8 @@ public class LoadLanguageDialog extends JDialog {
 
     private String readFile(File file) {
         try {
-            return Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            Charset charset = Charset.forName(config().getString("files.i18nEncoding"));
+            return Files.readString(file.toPath(), charset);
         } catch (IOException exception) {
             LOGGER.log(Level.SEVERE, "Error al leer el archivo de idioma: " + file.getAbsolutePath(), exception);
             return "";
@@ -117,12 +128,23 @@ public class LoadLanguageDialog extends JDialog {
     }
 
     private boolean tryAddLanguage() {
+        if (!hasSelectedFile()) {
+            return false;
+        }
+        return applyLanguageCode();
+    }
+
+    private boolean hasSelectedFile() {
         if (selectedFile == null) {
             LOGGER.warning("No se seleccionó ningún archivo de idioma");
             return false;
         }
+        return true;
+    }
+
+    private boolean applyLanguageCode() {
         String code = languageCodeField.getText().trim().toLowerCase();
-        if (!languageService.loadExternalLanguage(code, selectedFile)) {
+        if (!languageService().loadExternalLanguage(code, selectedFile)) {
             return false;
         }
         loadedLanguageCode = code;
@@ -130,12 +152,24 @@ public class LoadLanguageDialog extends JDialog {
     }
 
     private void showError() {
-        String message = languageService.getText("dialog.loadLanguage.error");
-        String title = languageService.getText("dialog.loadLanguage.errorTitle");
+        String message = languageService().getText("dialog.loadLanguage.error");
+        String title = languageService().getText("dialog.loadLanguage.errorTitle");
         JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
     }
 
     public String getLoadedLanguageCode() {
         return loadedLanguageCode;
+    }
+
+    private LanguageService languageService() {
+        return context.languageService();
+    }
+
+    private ConfigService config() {
+        return context.configService();
+    }
+
+    private DialogTheme theme() {
+        return context.theme();
     }
 }
