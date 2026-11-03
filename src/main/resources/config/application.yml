@@ -1,0 +1,38 @@
+files:
+  applicationConfig: config/application.yml
+  i18nPrefix: i18n/
+  i18nExtension: .yml
+  externalI18nDir: extraI18n/
+
+map:
+  imagePath: map/tunja.png
+
+geoReference:
+  topLeftLat: 5.587388
+  topLeftLon: -73.385014
+  bottomRightLat: 5.489838
+  bottomRightLon: -73.317344
+
+graph:
+  nodesCsv: csv/nodes.csv
+  edgesCsv: csv/edges.csv
+  saveFolder: data/graph
+
+routes:
+  savedFile: data/saved-routes.csv
+
+tolerance:
+  clickRadiusPx: 10
+
+logs:
+  directory: logs
+  fileNamePattern: mapRouteTunja-yyyy-MM-dd.log
+  rotationDays: 3
+  level: INFO
+
+i18n:
+  defaultLanguage: es
+  availableLanguages:
+    - es
+    - en
+    - fr

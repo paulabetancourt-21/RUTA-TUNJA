@@ -1,0 +1,16 @@
+# Build output
+/target/
+
+# Runtime data
+/logs/
+/extraI18n/
+/data/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
